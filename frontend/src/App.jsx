@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import MedicalSupport from './pages/MedicalSupport/index'
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         {/* Placeholder routes for dashboard features */}
         <Route path="/calendar" element={<Dashboard />} />
         <Route path="/medical" element={<Dashboard />} />
+        <Route path="/medical-support" element={<MedicalSupport />} />
         <Route path="/chatbot" element={<Dashboard />} />
         <Route path="/lost-found" element={<Dashboard />} />
         <Route path="/feedback" element={<Dashboard />} />
