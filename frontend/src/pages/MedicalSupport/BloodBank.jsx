@@ -1,11 +1,18 @@
 import { useState } from 'react'
 import { Users, Droplet, Phone, MapPin, Clock } from 'lucide-react'
-import AddDonorModal from './modals/AddDonorModal'
-import RequestBloodModal from './modals/RequestBloodModal'
+import AddDonorModal from './components/AddDonorModal'
+import RequestBloodModal from './components/RequestBloodModal'
 
-export default function BloodBank() {
+export default function BloodBank({ isDonor, isActive, onDonorRegistration }) {
   const [showDonorModal, setShowDonorModal] = useState(false)
   const [showRequestModal, setShowRequestModal] = useState(false)
+
+  const handleDonorModalClose = (registered) => {
+    setShowDonorModal(false)
+    if (registered) {
+      onDonorRegistration()
+    }
+  }
 
   const donors = [
     {
@@ -50,15 +57,28 @@ export default function BloodBank() {
     <>
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-2xl font-bold text-gray-800">Blood Donation Portal</h2>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Blood Donation Portal</h2>
+            {isDonor && (
+              <p className="text-sm text-gray-600 mt-1">
+                Your status: <span className={`font-semibold ${
+                  isActive ? 'text-green-600' : 'text-gray-600'
+                }`}>
+                  {isActive ? 'Available for donation' : 'Recently donated'}
+                </span>
+              </p>
+            )}
+          </div>
           <div className="flex gap-3">
-            <button
-              onClick={() => setShowDonorModal(true)}
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#e50914] to-[#b00020] px-6 py-3 font-semibold text-white shadow-lg transition hover:shadow-xl"
-            >
-              <Users className="h-5 w-5" />
-              Be a Donor
-            </button>
+            {!isDonor && (
+              <button
+                onClick={() => setShowDonorModal(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#e50914] to-[#b00020] px-6 py-3 font-semibold text-white shadow-lg transition hover:shadow-xl"
+              >
+                <Users className="h-5 w-5" />
+                Be a Donor
+              </button>
+            )}
             <button
               onClick={() => setShowRequestModal(true)}
               className="inline-flex items-center gap-2 rounded-full border-2 border-[#e50914] bg-white px-6 py-3 font-semibold text-[#e50914] transition hover:bg-[#e50914] hover:text-white"
@@ -122,7 +142,7 @@ export default function BloodBank() {
 
       <AddDonorModal 
         isOpen={showDonorModal} 
-        onClose={() => setShowDonorModal(false)} 
+        onClose={handleDonorModalClose} 
       />
       <RequestBloodModal 
         isOpen={showRequestModal} 

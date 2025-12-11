@@ -45,7 +45,7 @@ export default function AddDonorModal({ isOpen, onClose }) {
           const toastId = toast.loading('Saving donor details...')
           setTimeout(() => {
             toast.success('Donor added successfully!', { id: toastId })
-            onClose()
+            onClose(true) // Pass true to indicate successful registration
           }, 1000)
         }}>
           <div>
