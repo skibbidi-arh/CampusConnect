@@ -9,17 +9,6 @@ export default function Header({ onMenuToggle, showMenuButton = true }) {
     <nav className="sticky top-0 z-50 bg-gradient-to-r from-[#e50914] via-[#b00020] to-[#8b0018] shadow-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4">
-          {showMenuButton && (
-            <button
-              onClick={onMenuToggle}
-              className="rounded-lg p-2 text-white transition-all hover:bg-white/20 lg:hidden"
-              aria-label="Toggle sidebar"
-            >
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          )}
           <button 
             onClick={() => navigate('/dashboard')}
             className="text-2xl font-extrabold tracking-wide text-white transition-opacity hover:opacity-90"

@@ -1,5 +1,6 @@
 import { X, AlertCircle } from 'lucide-react'
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 
 export default function RequestBloodModal({ isOpen, onClose }) {
   const [isEmergency, setIsEmergency] = useState(false)
@@ -19,12 +20,49 @@ export default function RequestBloodModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        <form className="space-y-5">
+        <form className="space-y-5" onSubmit={(e) => {
+          e.preventDefault()
+          const formData = new FormData(e.target)
+          const bloodGroup = formData.get('bloodGroup')
+          const mobile = formData.get('mobile')
+          const dueDate = formData.get('dueDate')
+          const location = formData.get('location')
+          
+          if (!bloodGroup || bloodGroup === '--- Select Group ---') {
+            toast.error('Please select a blood group')
+            return
+          }
+          if (!mobile || mobile.length < 10) {
+            toast.error('Please enter a valid mobile number')
+            return
+          }
+          if (!dueDate) {
+            toast.error('Please select blood due date')
+            return
+          }
+          if (!location || !location.trim()) {
+            toast.error('Please enter your location')
+            return
+          }
+          
+          const toastId = toast.loading('Submitting blood request...')
+          setTimeout(() => {
+            if (isEmergency) {
+              toast.success('🚨 Emergency blood request submitted successfully!', { 
+                id: toastId,
+                duration: 5000,
+              })
+            } else {
+              toast.success('Blood request submitted successfully!', { id: toastId })
+            }
+            onClose()
+          }, 1000)
+        }}>
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Blood Group
             </label>
-            <select className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20">
+            <select name="bloodGroup" className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20">
               <option>--- Select Group ---</option>
               <option>A+</option>
               <option>A-</option>
@@ -43,6 +81,7 @@ export default function RequestBloodModal({ isOpen, onClose }) {
             </label>
             <input
               type="tel"
+              name="mobile"
               placeholder="e.g. 1234567890"
               className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
             />
@@ -54,6 +93,7 @@ export default function RequestBloodModal({ isOpen, onClose }) {
             </label>
             <input
               type="date"
+              name="dueDate"
               className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
             />
           </div>
@@ -64,6 +104,7 @@ export default function RequestBloodModal({ isOpen, onClose }) {
             </label>
             <input
               type="text"
+              name="location"
               placeholder="City, Area"
               className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
             />
