@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import MedicalSupport from './pages/MedicalSupport/index'
 import LostFound from './pages/LostFound/index'
+import RoommateWanted from './pages/RoommateWanted'
 
 function App() {
   return (
@@ -56,13 +57,12 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         {/* Placeholder routes for dashboard features */}
         <Route path="/calendar" element={<Dashboard />} />
-        <Route path="/medical" element={<Dashboard />} />
         <Route path="/medical-support" element={<MedicalSupport />} />
         <Route path="/chatbot" element={<Dashboard />} />
         <Route path="/lost-found" element={<LostFound />} />
         <Route path="/feedback" element={<Dashboard />} />
         <Route path="/marketplace" element={<Dashboard />} />
-        <Route path="/accommodation" element={<Dashboard />} />
+        <Route path="/roommate-wanted" element={<RoommateWanted />} />
         <Route path="/profile" element={<Dashboard />} />
         <Route path="/settings" element={<Dashboard />} />
       </Routes>

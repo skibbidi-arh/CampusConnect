@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { AlertCircle, Phone, MapPin, Calendar, Filter } from 'lucide-react'
+import { AlertCircle, Phone, MapPin, Calendar, Filter, Copy, Check } from 'lucide-react'
 
 export default function BloodRequests() {
   const [selectedBloodGroup, setSelectedBloodGroup] = useState('all')
   const [showEmergencyOnly, setShowEmergencyOnly] = useState(false)
+  const [copiedId, setCopiedId] = useState(null)
 
   // Sample blood requests data
   const bloodRequests = [
@@ -60,6 +61,13 @@ export default function BloodRequests() {
   ]
 
   const bloodGroups = ['all', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+
+  // Copy phone number to clipboard
+  const copyToClipboard = (contact, id) => {
+    navigator.clipboard.writeText(contact)
+    setCopiedId(id)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
 
   // Filter blood requests
   const filteredRequests = bloodRequests.filter(request => {
@@ -152,6 +160,22 @@ export default function BloodRequests() {
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-[#e50914]" />
                       <span className="font-semibold">{request.contact}</span>
+                      <button
+                        onClick={() => copyToClipboard(request.contact, request.id)}
+                        className="ml-2 flex items-center gap-1 rounded-lg bg-[#e50914] px-2 py-1 text-xs font-medium text-white transition hover:bg-[#c50812]"
+                      >
+                        {copiedId === request.id ? (
+                          <>
+                            <Check className="h-3 w-3" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3 w-3" />
+                            Copy
+                          </>
+                        )}
+                      </button>
                     </div>
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-[#e50914]" />
@@ -169,10 +193,6 @@ export default function BloodRequests() {
                   
                   <p className="mt-3 text-xs text-gray-500">{request.timePosted}</p>
                 </div>
-
-                <button className="ml-4 rounded-full bg-gradient-to-r from-[#e50914] to-[#b00020] px-6 py-2 font-semibold text-white shadow-lg transition hover:shadow-xl">
-                  Contact
-                </button>
               </div>
             </div>
           ))
