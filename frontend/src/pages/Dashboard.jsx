@@ -1,9 +1,18 @@
 import { useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import { AuthContext } from '../context/AuthContext'
+import { useNavigate } from 'react-router'
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const {User,logout} = AuthContext();
+  const navigateto = useNavigate();
+   const handlelogout=()=>{
+    console.log('Logging out user:', User);
+    localStorage.removeItem('user')
+    navigateto('/login')
+  }
 
   const features = [
     {
@@ -123,11 +132,11 @@ export default function Dashboard() {
               </a>
             </nav>
             
-            <button className="flex items-center gap-3 rounded-xl border-2 border-[#b00020] px-4 py-3 text-[#b00020] transition-all hover:bg-[#b00020] hover:text-white">
+            <button onClick={()=>{handlelogout()}} className="flex items-center gap-3 rounded-xl border-2 border-[#b00020] px-4 py-3 text-[#b00020] transition-all hover:bg-[#b00020] hover:text-white">
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
-              <span className="font-semibold">Logout</span>
+              <span  className="font-semibold">Logout</span>
             </button>
           </div>
         </aside>

@@ -1,5 +1,96 @@
+import React, { useState, useEffect, useContext } from 'react';
+import axios from "axios";
+import { signInWithGoogle, auth } from '../../config.js';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext.jsx';
+import { AlertTriangle, X } from 'lucide-react'; 
+import '../index.css'
+
+const ErrorToast = ({ isVisible, message, onClose }) => {
+    useEffect(() => {
+        if (isVisible) {
+            const timer = setTimeout(() => {
+                onClose();
+            }, 5000); 
+            return () => clearTimeout(timer); 
+        }
+    }, [isVisible, onClose]);
+
+    const visibilityClasses = isVisible 
+        ? 'translate-x-0 opacity-100' 
+        : 'translate-x-full opacity-0 pointer-events-none';
+
+    return (
+        <div 
+            className={`fixed top-6 right-6 z-[999] p-4 max-w-sm w-full 
+                        bg-white border-l-4 border-red-600 rounded-lg shadow-xl 
+                        transform transition-all duration-500 ease-in-out ${visibilityClasses}`}
+            role="alert"
+        >
+            <div className="flex items-start">
+                
+                <AlertTriangle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                
+                <div className="ml-3 flex-1">
+                    <p className="text-sm font-bold text-red-800">Authentication Error</p>
+                    <p className="mt-1 text-sm text-gray-700">
+                        {message}
+                    </p>
+                </div>
+                
+                <div className="ml-4 flex-shrink-0">
+                    <button
+                        onClick={onClose}
+                        className="p-1 rounded-md inline-flex text-gray-400 hover:text-red-500 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition"
+                        aria-label="Close notification"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Login Component ---
+
+const BACKEND_URL = 'http://localhost:4000/api/auth/verify-domain';
 export default function Login() {
-  return (
+  const {User,setUser} = AuthContext()
+  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleSubmit = async() => {
+    console.log('hocche');
+    try {
+      
+      const userCredential = await signInWithGoogle();
+      console.log(userCredential);
+      const firebaseIdToken = await userCredential.user.getIdToken();
+      
+      const response = await axios.post(BACKEND_URL, {
+        token: firebaseIdToken
+      }, {
+        withCredentials: true
+      });
+      console.log(response?.data);
+      setUser(response?.data?.user);
+      localStorage.setItem('user',JSON.stringify(response?.data?.user));
+      navigate('/dashboard');
+
+    } catch (error) {
+      const backendErrorMsg = error.response?.data?.message;
+      const msg = backendErrorMsg || error.message || 'An unknown sign-in error occurred.';
+      console.log(msg);
+      setErrorMessage(msg);
+    }
+  };
+
+  const clearError = () => {
+    setErrorMessage('');
+  };
+
+   return (
     <main className="grid min-h-screen w-full grid-cols-1 bg-white md:grid-cols-2">
       <section className="relative flex items-center justify-center bg-gradient-to-br from-[#e50914] via-[#b00020] to-[#8b0018] p-8 text-white">
         <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:20px_20px]" aria-hidden="true" />
@@ -8,6 +99,7 @@ export default function Login() {
           <h2 className="mb-4 text-2xl font-bold tracking-wide">Sign in</h2>
 
           <button
+            onClick={handleSubmit}
             type="button"
             aria-label="Login with Google"
             className="inline-flex w-full items-center gap-3 rounded-xl border-2 border-white bg-white px-4 py-3 text-[#b00020] shadow-xl transition-transform hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 active:scale-[0.98]"
