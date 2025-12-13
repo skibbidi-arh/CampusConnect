@@ -1,14 +1,31 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { AuthContext } from '../context/AuthContext'
 
 export default function Header({ onMenuToggle, showMenuButton = true }) {
+  const {User} = AuthContext()
   const navigate = useNavigate()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const handlelogout=()=>{
+    localStorage.removeItem('user')
+    navigate('/login')
+  }
 
   return (
     <nav className="sticky top-0 z-50 bg-gradient-to-r from-[#e50914] via-[#b00020] to-[#8b0018] shadow-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4">
+          {showMenuButton && (
+            <button
+              onClick={onMenuToggle}
+              className="rounded-lg p-2 text-white transition-all hover:bg-white/20 lg:hidden"
+              aria-label="Toggle sidebar"
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
           <button 
             onClick={() => navigate('/dashboard')}
             className="text-2xl font-extrabold tracking-wide text-white transition-opacity hover:opacity-90"
@@ -36,7 +53,7 @@ export default function Header({ onMenuToggle, showMenuButton = true }) {
               className="flex items-center gap-3 rounded-lg p-1 transition-all hover:bg-white/10"
             >
               <div className="hidden text-right sm:block">
-                <p className="text-sm font-semibold text-white">Student Name</p>
+                <p className="text-sm font-semibold text-white">{User?.user_name || User?.user?.user_name}</p>
                 <p className="text-xs text-white/80">IUT Student</p>
               </div>
               <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-white bg-white/20 backdrop-blur-sm">
@@ -84,7 +101,7 @@ export default function Header({ onMenuToggle, showMenuButton = true }) {
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
-                  <span className="font-semibold">Logout</span>
+                  <span onClick={handlelogout} className="font-semibold">Logout</span>
                 </button>
               </div>
             )}

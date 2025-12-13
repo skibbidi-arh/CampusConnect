@@ -1,8 +1,18 @@
 import { useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import { AuthContext } from '../context/AuthContext'
+import { useNavigate } from 'react-router'
 
 export default function Dashboard() {
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const {User,logout} = AuthContext();
+  const navigateto = useNavigate();
+   const handlelogout=()=>{
+    console.log('Logging out user:', User);
+    localStorage.removeItem('user')
+    navigateto('/login')
+  }
 
   const features = [
     {
@@ -86,7 +96,7 @@ export default function Dashboard() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
       ),
-      link: '/roommate-wanted',
+      link: '/accommodation',
       color: 'from-[#8b0018] via-[#b00020] to-[#e50914]'
     }
   ]
@@ -94,12 +104,56 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Top Navbar */}
-      <Header showMenuButton={false} />
+      <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      {/* Main Content */}
-      <main className="container mx-auto flex-1 p-4 sm:p-6 lg:p-8">
-        {/* Welcome Section */}
-        <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-[#e50914] via-[#b00020] to-[#8b0018] p-8 text-white shadow-2xl animate-[fade-up_700ms_ease-out_both]">
+      <div className="flex">
+        {/* Sidebar - Desktop */}
+        <aside className={`fixed inset-y-0 left-0 z-40 mt-[72px] w-64 transform bg-white shadow-xl transition-transform duration-300 lg:relative lg:mt-0 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="flex h-full flex-col p-4">
+            <nav className="flex-1 space-y-2">
+              <a href="/dashboard" className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-[#e50914] to-[#b00020] px-4 py-3 text-white shadow-lg">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span className="font-semibold">Dashboard</span>
+              </a>
+              <a href="/profile" className="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-700 transition-all hover:bg-gray-100">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="font-semibold">Profile</span>
+              </a>
+              <a href="/settings" className="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-700 transition-all hover:bg-gray-100">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="font-semibold">Settings</span>
+              </a>
+            </nav>
+            
+            <button onClick={()=>{handlelogout()}} className="flex items-center gap-3 rounded-xl border-2 border-[#b00020] px-4 py-3 text-[#b00020] transition-all hover:bg-[#b00020] hover:text-white">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span  className="font-semibold">Logout</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Overlay for mobile */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
+        {/* Main Content */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          {/* Welcome Section */}
+          <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-[#e50914] via-[#b00020] to-[#8b0018] p-8 text-white shadow-2xl animate-[fade-up_700ms_ease-out_both]">
             <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:20px_20px]" aria-hidden="true" />
             <div className="relative z-10">
               <h2 className="mb-2 text-3xl font-extrabold tracking-wide md:text-4xl">
@@ -111,8 +165,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-        {/* Feature Cards Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Feature Cards Grid */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature, index) => (
               <a
                 key={feature.id}
@@ -154,8 +208,8 @@ export default function Dashboard() {
             ))}
           </div>
 
-        {/* Quick Stats Section */}
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
+          {/* Quick Stats Section */}
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
             <div className="rounded-xl bg-white p-6 shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
@@ -198,7 +252,8 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-      </main>
+        </main>
+      </div>
 
       {/* Footer */}
       <Footer />
