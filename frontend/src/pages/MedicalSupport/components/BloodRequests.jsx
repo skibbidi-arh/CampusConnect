@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
-import { AlertCircle, Phone, MapPin, Calendar, X, Trash2, Filter } from 'lucide-react'
+import { AlertCircle, Phone, MapPin, Calendar, X, Trash2, Filter, Copy } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { useRecieverContext } from '../../../context/RecieverContext'
 import { useDonorContext } from '../../../context/DonorContext'
 import { AuthContext } from '../../../context/AuthContext'
@@ -28,7 +29,9 @@ export default function BloodRequests() {
     const [filteredRequests, setFilteredRequests] = useState([]);
 
     // Other States
-    const [isCancelling, setIsCancelling] = useState(null); 
+    const [isCancelling, setIsCancelling] = useState(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [requestToDelete, setRequestToDelete] = useState(null);
     const bloodGroups = ['all', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 
@@ -72,28 +75,53 @@ export default function BloodRequests() {
 
     // 4. Cancellation Handler (Adjusted URL to /cancel/)
     const handleCancelRequest = async (requestId) => {
-        if (!window.confirm("Are you sure you want to cancel this blood request?")) {
-            return;
-        }
+        setRequestToDelete(requestId);
+        setShowDeleteConfirm(true);
+    };
 
-        setIsCancelling(requestId);
+    const confirmDelete = async () => {
+        if (!requestToDelete) return;
+
+        setIsCancelling(requestToDelete);
+        setShowDeleteConfirm(false);
+        
         try {
-            console.log("Cancelling request with ID:", requestId);
+            console.log("Cancelling request with ID:", requestToDelete);
             
             // Using the agreed-upon /cancel/ endpoint for better semantic DELETE operation
-            await axios.delete(`http://localhost:4000/api/request/cancel/${requestId}`, {
+            await axios.delete(`http://localhost:4000/api/request/cancel/${requestToDelete}`, {
                 withCredentials: true
             });
+
+            // Show success toast
+            toast.success('Blood request cancelled successfully!');
 
             // Refresh the list from the context after successful deletion
             await fetchRecievers();
 
         } catch (error) {
             console.error("Error cancelling request:", error.response?.data?.message || error.message);
-            alert(`Failed to cancel request: ${error.response?.data?.message || 'Server error.'}`);
+            toast.error(error.response?.data?.message || 'Failed to cancel request. Please try again.');
         } finally {
             setIsCancelling(null);
+            setRequestToDelete(null);
         }
+    };
+
+    const cancelDelete = () => {
+        setShowDeleteConfirm(false);
+        setRequestToDelete(null);
+    };
+
+    // Copy phone number to clipboard
+    const handleCopyPhone = (phoneNumber) => {
+        navigator.clipboard.writeText(phoneNumber)
+            .then(() => {
+                toast.success('Phone number copied!');
+            })
+            .catch(() => {
+                toast.error('Failed to copy phone number');
+            });
     };
 
     if (recieverLoading) {
@@ -106,6 +134,37 @@ export default function BloodRequests() {
 
     return (
         <div className="space-y-6">
+            {/* Confirmation Dialog Popup */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="bg-red-100 rounded-full p-3">
+                                <AlertCircle className="h-6 w-6 text-red-600" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-800">Confirm Cancellation</h3>
+                        </div>
+                        <p className="text-gray-600 mb-6">
+                            Are you sure you want to cancel this blood request? This action cannot be undone.
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={cancelDelete}
+                                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition"
+                            >
+                                No, Keep it
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition"
+                            >
+                                Yes, Cancel Request
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="text-2xl font-bold text-gray-800">Blood Requests</h2>
 
@@ -177,8 +236,8 @@ export default function BloodRequests() {
                     filteredRequests.map((request) => {
                         const isCurrentUserRequest = request.email === currentUserEmail;
 
-                        // Use request_id or a fallback for the key and ID
-                        const reqId = request.request_id || request.id; 
+                        // Use requestId from the API response
+                        const reqId = request.requestId; 
                         const currentlyCancelling = isCancelling === reqId;
                         const dueDate = request.deadline ? new Date(request.deadline).toLocaleDateString
                         
@@ -223,6 +282,13 @@ export default function BloodRequests() {
                                             <div className="flex items-center gap-2">
                                                 <Phone className="h-4 w-4 text-[#e50914]" />
                                                 <span className="font-semibold">{request.phone_number || request.contact}</span>
+                                                <button
+                                                    onClick={() => handleCopyPhone(request.phone_number || request.contact)}
+                                                    className="ml-1 rounded p-1 hover:bg-gray-200 transition"
+                                                    title="Copy phone number"
+                                                >
+                                                    <Copy className="h-3.5 w-3.5 text-gray-600" />
+                                                </button>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <MapPin className="h-4 w-4 text-[#e50914]" />
@@ -238,7 +304,7 @@ export default function BloodRequests() {
                                     </div>
 
                                     {/* Conditional Buttons */}
-                                    {isCurrentUserRequest ? (
+                                    {isCurrentUserRequest && (
                                         <button
                                             onClick={() => handleCancelRequest(reqId)}
                                             className="ml-4 flex items-center justify-center gap-2 rounded-full bg-gray-500 px-4 py-2 font-semibold text-white shadow-lg transition hover:bg-gray-600 disabled:opacity-50"
@@ -253,12 +319,6 @@ export default function BloodRequests() {
                                                 </>
                                             )}
                                         </button>
-                                    ) : (
-                                        isRegisteredDonor && (
-                                            <button className="ml-4 rounded-full bg-gradient-to-r from-[#e50914] to-[#b00020] px-6 py-2 font-semibold text-white shadow-lg transition hover:shadow-xl">
-                                                Contact
-                                            </button>
-                                        )
                                     )}
                                 </div>
                             </div>

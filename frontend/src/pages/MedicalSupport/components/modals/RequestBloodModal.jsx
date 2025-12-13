@@ -1,5 +1,6 @@
 import { X, AlertCircle } from 'lucide-react'
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 import { AuthContext } from '../../../../context/AuthContext'
 import { useRecieverContext } from '../../../../context/RecieverContext'
 
@@ -49,6 +50,9 @@ export default function RequestBloodModal({ isOpen, onClose }) {
             // Call the context function to create the request
             await createReciever(formData);
             
+            // Show success toast
+            toast.success('Blood request submitted successfully! Donors will be notified.');
+            
             // Success: Reset form and close modal
             setFormData({
                 blood_group: '',
@@ -62,6 +66,7 @@ export default function RequestBloodModal({ isOpen, onClose }) {
 
         } catch (error) {
             setSubmissionError(error.message || 'An error occurred during submission.');
+            toast.error(error.message || 'Failed to submit blood request. Please try again.');
         } finally {
             setIsSubmitting(false);
         }

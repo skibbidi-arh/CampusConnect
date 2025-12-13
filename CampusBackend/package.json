@@ -10,7 +10,7 @@
     "prisma:generate": "prisma generate"
   },
   "dependencies": {
-    "@prisma/client": "^5.7.1",
+    "@prisma/client": "^5.22.0",
     "bcrypt": "^6.0.0",
     "body-parser": "2.2.1",
     "class-variance-authority": "0.7.1",

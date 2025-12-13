@@ -125,26 +125,19 @@ export default function LostFound() {
 
       {/* Main Content */}
       <main className="container mx-auto flex-1 p-4 sm:p-6 lg:p-8">
-          {/* Go Back Button */}
-          <GoBackButton />
-
-          {/* Header Section */}
-          <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-[#e50914] via-[#b00020] to-[#8b0018] p-8 text-white shadow-2xl animate-[fade-up_700ms_ease-out_both]">
-            <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:20px_20px]" aria-hidden="true" />
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="rounded-xl bg-white/20 p-3 backdrop-blur-sm">
-                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <h1 className="text-3xl font-extrabold tracking-wide md:text-4xl">
+        <div className="mx-auto max-w-7xl">
+          {/* Page Header */}
+          <div className="mb-8 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <GoBackButton />
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
                   Digital Lost & Found
                 </h1>
+                <p className="mt-1 text-sm text-gray-600">
+                  Report and recover lost items on campus
+                </p>
               </div>
-              <p className="text-lg text-white/90 ml-[68px]">
-                Report and recover lost items on campus
-              </p>
             </div>
           </div>
 
@@ -288,33 +281,11 @@ export default function LostFound() {
               <PostItemForm onSubmit={handleNewItem} />
             </div>
           </div>
-        </main>
+        </div>
+      </main>
 
       {/* Footer */}
       <Footer />
-
-      <style>{`
-        @keyframes pop-in { 
-          0% { opacity: 0; transform: scale(0.92);} 
-          100% { opacity: 1; transform: scale(1);} 
-        }
-        @keyframes fade-up { 
-          0% { opacity: 0; transform: translateY(12px);} 
-          100% { opacity: 1; transform: translateY(0);} 
-        }
-        @keyframes slide-in {
-          0% { opacity: 0; transform: translateX(20px); }
-          100% { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes slide-down {
-          0% { opacity: 0; transform: translateY(-10px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fade-in {
-          0% { opacity: 0; }
-          100% { opacity: 1; }
-        }
-      `}</style>
     </div>
   )
 }

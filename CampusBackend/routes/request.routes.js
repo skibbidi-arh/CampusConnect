@@ -5,7 +5,7 @@ const requestController = require('../controllers/request.controller'); // Path 
 const { verifyToken } = require('../middleware/VerifyToken');
 
 router.post('/create', verifyToken, requestController.createBloodRequest);
-router.delete('/remove/:requestId', verifyToken, requestController.cancelBloodRequest);
+router.delete('/cancel/:requestId', verifyToken, requestController.cancelBloodRequest);
 router.get('/all', verifyToken, requestController.getAllRequests);
 
 module.exports = router;
