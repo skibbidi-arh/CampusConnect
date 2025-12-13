@@ -8,6 +8,9 @@ yarn.lock
 .env.local
 .env.*.local
 
+# Firebase credentials
+firebase.admin.json
+
 # Prisma
 .prisma/
 prisma/migrations/
