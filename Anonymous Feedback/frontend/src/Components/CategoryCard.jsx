@@ -6,7 +6,7 @@ export default function CategoryCard({ category }) {
     const navigate = useNavigate();
 
     return (
-        <div className="category-card" onClick={() => navigate(`/category/${category}`)}>
+        <div className="category-card" onClick={() => navigate(`/category/${encodeURIComponent(category)}`)}>
             {category}
         </div>
     );
