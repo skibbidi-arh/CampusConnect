@@ -1,22 +1,58 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
+import { AuthContext } from '../../../context/AuthContext'
 
-export default function PostItemForm({ onSubmit }) {
+export default function PostItemForm({ onSubmit, User }) {
+  console.log(User)
   const [isLoading, setIsLoading] = useState(false)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [imagePreview, setImagePreview] = useState(null)
+  const [imageUrl, setImageUrl] = useState('')
   const [errors, setErrors] = useState({})
-  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     date: '',
     location: '',
-    phoneNumber: '',
+    phone_number: User?.phone_number,
     facebookId: '',
     image: ''
   })
+  useEffect(() => {
+    if (User?.phone_number && !formData.phone_number) {
+      setFormData(prev => ({
+        ...prev,
+        phone_number: User.phone_number
+      }));
+    }
+  }, [User]);
 
+  const uploadToImgBB = async (base64Image) => {
+    setIsUploadingImage(true);
+    try {
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=0f10a53e4adf77920126b0d4c1685fdb`, {
+        method: 'POST',
+        body: new URLSearchParams({
+          image: base64Image
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setImageUrl(data.data.url);
+        setFormData(prev => ({ ...prev, image: data.data.url }));
+        setErrors(prev => ({ ...prev, image: '' }));
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (error) {
+      console.error('ImgBB upload error:', error);
+      setErrors(prev => ({ ...prev, image: 'Failed to upload image. Please try again.' }));
+      setImagePreview(null);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
   const handleDrag = (e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -31,7 +67,7 @@ export default function PostItemForm({ onSubmit }) {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0])
     }
@@ -48,8 +84,9 @@ export default function PostItemForm({ onSubmit }) {
       const reader = new FileReader()
       reader.onloadend = () => {
         setImagePreview(reader.result)
-        setFormData(prev => ({ ...prev, image: reader.result }))
-        setErrors(prev => ({ ...prev, image: '' }))
+        // Extract base64 without the prefix
+        const base64 = reader.result.split(',')[1];
+        uploadToImgBB(base64);
       }
       reader.readAsDataURL(file)
     } else {
@@ -68,7 +105,7 @@ export default function PostItemForm({ onSubmit }) {
 
   const validateForm = () => {
     const newErrors = {}
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Item name is required'
     }
@@ -81,19 +118,22 @@ export default function PostItemForm({ onSubmit }) {
     if (!formData.location.trim()) {
       newErrors.location = 'Location is required'
     }
-    if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'Phone number is required'
-    } else if (!/^\d{10,15}$/.test(formData.phoneNumber.replace(/[\s-]/g, ''))) {
-      newErrors.phoneNumber = 'Please enter a valid phone number'
+    if (!formData.phone_number.trim()) {
+      newErrors.phone_number = 'Phone number is required'
+    } else if (!/^\d{10,15}$/.test(formData.phone_number.replace(/[\s-]/g, ''))) {
+      newErrors.phone_number = 'Please enter a valid phone number'
     }
-    
+    if (!imageUrl) {
+      newErrors.image = 'Image upload is required'
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (!validateForm()) {
       toast.error('Please fill in all required fields')
       return
@@ -101,25 +141,26 @@ export default function PostItemForm({ onSubmit }) {
 
     setIsLoading(true)
     const toastId = toast.loading('Posting your item...')
-    
+
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500))
-      
+
       onSubmit(formData)
-      
+
       // Reset form
       setFormData({
         name: '',
         description: '',
         date: '',
         location: '',
-        phoneNumber: '',
+        phone_number: '',
         facebookId: '',
         image: ''
       })
       setImagePreview(null)
-      
+      setImageUrl('')
+
       toast.success('Lost item posted successfully!', { id: toastId })
     } catch (error) {
       toast.error('Failed to post item. Please try again.', { id: toastId })
@@ -142,13 +183,12 @@ export default function PostItemForm({ onSubmit }) {
             Item Photo <span className="text-gray-500"></span>
           </label>
           <div
-            className={`relative cursor-pointer overflow-hidden rounded-xl border-2 border-dashed transition-all duration-300 ${
-              dragActive 
-                ? 'border-[#b00020] bg-red-50' 
-                : errors.image 
-                ? 'border-red-300 bg-red-50' 
+            className={`relative cursor-pointer overflow-hidden rounded-xl border-2 border-dashed transition-all duration-300 ${dragActive
+              ? 'border-[#b00020] bg-red-50'
+              : errors.image
+                ? 'border-red-300 bg-red-50'
                 : 'border-gray-300 hover:border-[#b00020]'
-            }`}
+              }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -161,7 +201,7 @@ export default function PostItemForm({ onSubmit }) {
               className="absolute inset-0 z-10 cursor-pointer opacity-0"
               aria-label="Upload image"
             />
-            
+
             {imagePreview ? (
               <div className="relative h-48">
                 <img
@@ -169,9 +209,18 @@ export default function PostItemForm({ onSubmit }) {
                   alt="Preview"
                   className="h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity hover:opacity-100">
-                  <p className="font-semibold text-white">Click to change</p>
-                </div>
+                {isUploadingImage ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                    <div className="flex items-center gap-3 rounded-lg bg-white px-4 py-2">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#b00020] border-t-transparent" />
+                      <span className="text-sm font-semibold text-gray-700">Uploading...</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity hover:opacity-100">
+                    <p className="font-semibold text-white">Click to change</p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex h-48 flex-col items-center justify-center p-6 text-center">
@@ -206,9 +255,8 @@ export default function PostItemForm({ onSubmit }) {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className={`w-full rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${
-              errors.name ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
-            }`}
+            className={`w-full rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.name ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
+              }`}
             placeholder="e.g., Black Leather Wallet"
           />
           {errors.name && (
@@ -234,9 +282,8 @@ export default function PostItemForm({ onSubmit }) {
             value={formData.description}
             onChange={handleChange}
             rows={4}
-            className={`w-full resize-none rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${
-              errors.description ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
-            }`}
+            className={`w-full resize-none rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.description ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
+              }`}
             placeholder="Provide details about the item..."
           />
           {errors.description && (
@@ -261,9 +308,8 @@ export default function PostItemForm({ onSubmit }) {
             value={formData.date}
             onChange={handleChange}
             max={new Date().toISOString().split('T')[0]}
-            className={`w-full rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${
-              errors.date ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
-            }`}
+            className={`w-full rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.date ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
+              }`}
           />
           {errors.date && (
             <p className="mt-1 flex items-center gap-1 text-xs text-red-600">
@@ -286,9 +332,8 @@ export default function PostItemForm({ onSubmit }) {
             name="location"
             value={formData.location}
             onChange={handleChange}
-            className={`w-full rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${
-              errors.location ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
-            }`}
+            className={`w-full rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.location ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
+              }`}
             placeholder="e.g., Library 2nd Floor, Near Cafeteria"
           />
           {errors.location && (
@@ -303,26 +348,25 @@ export default function PostItemForm({ onSubmit }) {
 
         {/* Phone Number */}
         <div>
-          <label htmlFor="phoneNumber" className="mb-2 block text-sm font-semibold text-gray-700">
+          <label htmlFor="phone_number" className="mb-2 block text-sm font-semibold text-gray-700">
             Phone Number <span className="text-red-500">*</span>
           </label>
           <input
             type="tel"
-            id="phoneNumber"
-            name="phoneNumber"
-            value={formData.phoneNumber}
+            id="phone_number"
+            name="phone_number"
+            value={formData.phone_number}
             onChange={handleChange}
-            className={`w-full rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${
-              errors.phoneNumber ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
-            }`}
+            className={`w-full rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.phone_number ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
+              }`}
             placeholder="e.g., 01712345678"
           />
-          {errors.phoneNumber && (
+          {errors.phone_number && (
             <p className="mt-1 flex items-center gap-1 text-xs text-red-600">
               <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              {errors.phoneNumber}
+              {errors.phone_number}
             </p>
           )}
         </div>
@@ -346,13 +390,18 @@ export default function PostItemForm({ onSubmit }) {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || !imageUrl || isUploadingImage}
           className="w-full rounded-xl bg-gradient-to-r from-[#e50914] to-[#b00020] px-6 py-4 font-bold text-white shadow-lg transition-all hover:shadow-xl active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isLoading ? (
             <div className="flex items-center justify-center gap-3">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
               <span>Posting...</span>
+            </div>
+          ) : isUploadingImage ? (
+            <div className="flex items-center justify-center gap-3">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <span>Uploading Image...</span>
             </div>
           ) : (
             <div className="flex items-center justify-center gap-2">

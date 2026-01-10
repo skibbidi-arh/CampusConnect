@@ -52,6 +52,7 @@ const AutoAuth = ({ children }) => {
 
     useEffect(() => {
         fetchCurrentUser();
+        console.log(User)
     }, [fetchCurrentUser])
 
 

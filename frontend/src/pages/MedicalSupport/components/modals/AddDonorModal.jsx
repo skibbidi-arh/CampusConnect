@@ -4,16 +4,16 @@ import { AuthContext } from '../../../../context/AuthContext'
 import axios from 'axios'
 
 export default function AddDonorModal({ isOpen, onClose, onSubmit, donorToEdit }) {
-    
+
     const { User } = AuthContext()
-    
+
     const isUpdateMode = !!donorToEdit;
 
     const getInitialFormData = (user, donor) => {
         return {
             blood_group: donor?.blood_group || '',
             phone_number: donor?.phone_number || user?.phone_number || user?.user?.phone_number || '',
-            last_donated: donor?.last_donated?.split('T')[0] || '', 
+            last_donated: donor?.last_donated?.split('T')[0] || '',
             location: donor?.location || '',
         };
     };
@@ -40,17 +40,18 @@ export default function AddDonorModal({ isOpen, onClose, onSubmit, donorToEdit }
     }
 
     const handleSubmit = async (e) => {
+        console.log('hoist')
         e.preventDefault()
         setStatusMessage({ message: '', type: '' });
         setIsSubmitting(true);
-        
-        const endpoint = isUpdateMode 
-            ? 'http://localhost:4000/api/donor/update' 
-            : 'http://localhost:4000/api/donor/register'; 
-        
+
+        const endpoint = isUpdateMode
+            ? 'http://localhost:4000/api/donor/update'
+            : 'http://localhost:4000/api/donor/register';
+
         const method = isUpdateMode ? axios.put : axios.post;
-        
-        const token = localStorage.getItem('authToken');
+
+        const token = sessionStorage.getItem('authToken');
         if (!token) {
             setStatusMessage({ message: 'Authentication required. Please log in again.', type: 'error' });
             setIsSubmitting(false);
@@ -60,19 +61,19 @@ export default function AddDonorModal({ isOpen, onClose, onSubmit, donorToEdit }
         try {
             const response = await method(endpoint, formData, {
                 headers: {
-                    'Authorization': `Bearer ${token}` 
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
             setStatusMessage({ message: response.data.message || 'Success!', type: 'success' });
-            
+
             if (onSubmit) {
-                await onSubmit(); 
+                await onSubmit();
             }
-            
+
             setTimeout(() => {
                 onClose()
-            }, 500); 
+            }, 500);
 
         } catch (error) {
             const message = error.response?.data?.message || `Failed to ${isUpdateMode ? 'update' : 'register'}.`;
@@ -100,11 +101,10 @@ export default function AddDonorModal({ isOpen, onClose, onSubmit, donorToEdit }
                         <X className="h-6 w-6" />
                     </button>
                 </div>
-                
+
                 {statusMessage.message && (
-                    <div className={`mb-4 p-3 rounded-lg text-sm ${
-                        statusMessage.type === 'error' ? 'bg-red-100 text-red-700 border border-red-400' : 'bg-green-100 text-green-700 border border-green-400'
-                    }`}>
+                    <div className={`mb-4 p-3 rounded-lg text-sm ${statusMessage.type === 'error' ? 'bg-red-100 text-red-700 border border-red-400' : 'bg-green-100 text-green-700 border border-green-400'
+                        }`}>
                         {statusMessage.message}
                     </div>
                 )}

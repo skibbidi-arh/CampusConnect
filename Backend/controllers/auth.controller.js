@@ -49,7 +49,7 @@ exports.googleSignin = async (req, res) => {
         });
         
         user.token = token;
-        console.log(user)
+        console.log('this is the user',user)
 
         res.status(200).json({
             message: "Google Login Successful", user

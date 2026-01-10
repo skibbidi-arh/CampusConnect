@@ -10,32 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// model User {
-//   id    Int     @id @default(autoincrement())
-//   email String  @unique
-//   name  String?
-//   posts Post[]
-//   phonenumbers PhoneNumbers[]
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt @default(now())
-// }
-// model Post {
-//   id    Int     @id @default(autoincrement())
-//   title String
-//   content String?
-//   published Boolean @default(false)
-//   author   User    @relation(fields: [authorId], references: [id])
-//   authorId Int
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt @default(now())
-// }
-// model PhoneNumbers {
-//   phone_id Int @id @default(autoincrement())
-//   author_number   User    @relation(fields: [authorNumberId], references: [id])
-//   authorNumberId Int 
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }
+
 
 //npx prisma migrate dev --name <migration_name>
 // npx prisma generate
@@ -43,17 +18,33 @@ model Users {
   users_id       Int            @id @default(autoincrement())
   user_name      String
   email          String         @unique
-  phone_number   String?        // Stored here as the primary contact for the user.
+  phone_number   String?        
   
-  // Relationships
-  bloodRequests BloodRequest[]
-  donorRecords  DonorRecord?    // One-to-one relationship (DonorRecord is optional)
+  bloodRequests  BloodRequest[]
+  donorRecords   DonorRecord?   
+  lostItems      LostItem[]     
 
   createdAt      DateTime       @default(now())
-   updatedAt    DateTime @default(now())
+  updatedAt      DateTime       @default(now())
 }
 
-// 2. BloodRequest Model: Stores details of a request.
+model LostItem {
+  item_id      Int      @id @default(autoincrement())
+  name         String
+  description  String   @db.Text
+  date         DateTime
+  location     String
+  phone_number String?  
+  image        String?  @db.Text
+  
+  owner        Users    @relation(fields: [ownerId], references: [users_id])
+  ownerId      Int
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("lost_items")
+}
 model BloodRequest {
   request_id   Int      @id @default(autoincrement())
   blood_group  String

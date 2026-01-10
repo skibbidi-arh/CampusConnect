@@ -5,7 +5,8 @@ dotenv.config();
 
 const authRoutes = require('./routes/auth.routes.js');
 const donorRoutes =require('./routes/donor.routes.js');
-const requestRoutes =require('./routes/request.routes.js')
+const requestRoutes = require('./routes/request.routes.js')
+const lostItemsRoutes =require('./routes/LostItem.routes.js')
 
 
 const cookieParser = require('cookie-parser');
@@ -33,7 +34,8 @@ app.get('/aise',(req,res)=>{
 
 app.use('/api/auth', authRoutes);
 app.use('/api/donor',donorRoutes);
-app.use('/api/request',requestRoutes)
+app.use('/api/request', requestRoutes)
+app.use('/api/lost-items',lostItemsRoutes)
 
 
 
