@@ -1,15 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { AuthContext } from '../context/AuthContext'
+import { CgProfile } from "react-icons/cg";
+import { useEffect } from 'react';
 
-export default function Header({ onMenuToggle, showMenuButton = true }) {
+export default function Header({ onMenuToggle, showMenuButton = true,handlelogout }) {
   const {User} = AuthContext()
   const navigate = useNavigate()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
-  const handlelogout=()=>{
-    localStorage.removeItem('user')
-    navigate('/login')
-  }
+  const [Image, setImage] = useState(null)
+
+
 
   return (
     <nav className="sticky top-0 z-50 bg-gradient-to-r from-[#e50914] via-[#b00020] to-[#8b0018] shadow-xl">
@@ -56,10 +57,8 @@ export default function Header({ onMenuToggle, showMenuButton = true }) {
                 <p className="text-sm font-semibold text-white">{User?.user_name || User?.user?.user_name}</p>
                 <p className="text-xs text-white/80">IUT Student</p>
               </div>
-              <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-white bg-white/20 backdrop-blur-sm">
-                <svg className="h-full w-full text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
+              <div className="h-10 w-10 overflow-hidden rounded-full  border-white bg-white/20 backdrop-blur-sm">
+                {!User?.image?(<CgProfile  className='w-full h-full'/>) : (<img src={ User?.image} />)}
               </div>
             </button>
 

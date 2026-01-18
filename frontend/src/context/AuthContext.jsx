@@ -24,14 +24,15 @@ const AutoAuth = ({ children }) => {
             setLoading(false);
             return null;
         }
-        
+        console.log(token)
         try {
+            console.log(token)
             const response = await axios.get('http://localhost:4000/api/auth/me', {
                 headers: {
                     'Authorization': `Bearer ${token}` 
                 }
             });
-
+            console.log(response)
             const verifiedUser = response.data.user;
 
             if (verifiedUser) {

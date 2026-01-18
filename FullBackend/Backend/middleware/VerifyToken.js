@@ -3,6 +3,7 @@ const prisma = require('../src/config/prisma');
 exports.verifyToken = async (req, res, next) => {
     // 1. Extract the Authorization header
     const authHeader = req.headers['authorization'];
+    console.log(authHeader)
 
     // 2. Check if the header exists and starts with 'Bearer '
     if (!authHeader || !authHeader.startsWith('Bearer ')) {

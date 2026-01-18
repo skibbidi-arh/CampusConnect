@@ -8,7 +8,8 @@ const { verifyToken } = require('../middleware/VerifyToken');
 
 
 
-router.post('/verify-domain',authController.googleSignin);
+router.post('/verify-domain', authController.googleSignin);
+router.put('/update-profile', verifyToken, authController.updateUserProfile);
 router.get('/me',verifyToken,authController.getMe);
 router.get('/logout',authController.logout)
 

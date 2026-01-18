@@ -54,9 +54,14 @@ const ErrorToast = ({ isVisible, message, onClose }) => {
 
 const BACKEND_URL = 'http://localhost:4000/api/auth/verify-domain';
 export default function Login() {
-  const {User,setUser,fetchCurrentUser} = AuthContext()
+  const {User,setUser,fetchCurrentUser,loading} = AuthContext()
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState('');
+  // if (loading === true) {
+  //   return <h1 className='absolute inset-0 flex justify-center items-center text-8xl w-full h-screen animate-spin text-white'>
+  //     o
+  //   </h1>
+  // }
 
   const handleSubmit = async() => {
     console.log('hocche');

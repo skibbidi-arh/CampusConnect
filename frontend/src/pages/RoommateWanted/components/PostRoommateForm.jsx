@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { AuthContext } from '../../../context/AuthContext'
 
 export default function PostRoommateForm({ onSubmit, onCancel }) {
+  const { User } = AuthContext();
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [noRoommates, setNoRoommates] = useState(false)
+
   const [formData, setFormData] = useState({
     area: '',
     fullAddress: '',
@@ -11,11 +14,21 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
     studentsInfo: [{ studentId: '', batch: '' }],
     rent: '',
     facilities: '',
-    contactInfo: '',
-    isGirlsOnly: false
+    phone_number: User?.phone_number || '',
+    isGirlsOnly: User?.gender === 'Female'
   })
 
   const [errors, setErrors] = useState({})
+
+  useEffect(() => {
+    if (User) {
+      setFormData(prev => ({
+        ...prev,
+        phone_number: prev.phone_number || User.phone_number || '',
+        isGirlsOnly: User.gender === 'Female'
+      }));
+    }
+  }, [User]);
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -23,7 +36,6 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
       ...prev,
       [name]: value
     }))
-    // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }))
     }
@@ -60,7 +72,7 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
   const handleNoRoommatesToggle = () => {
     const newNoRoommates = !noRoommates
     setNoRoommates(newNoRoommates)
-    
+
     if (newNoRoommates) {
       setFormData(prev => ({
         ...prev,
@@ -95,13 +107,12 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
       newErrors.rent = 'Valid rent amount is required'
     }
 
-    if (!formData.contactInfo.trim()) {
-      newErrors.contactInfo = 'Contact information is required'
-    } else if (!/^[0-9]{11}$/.test(formData.contactInfo.trim())) {
-      newErrors.contactInfo = 'Contact must be a valid 11-digit phone number'
+    if (!formData.phone_number.trim()) {
+      newErrors.phone_number = 'Phone number is required'
+    } else if (!/^[0-9]{11}$/.test(formData.phone_number.trim())) {
+      newErrors.phone_number = 'Must be a valid 11-digit phone number'
     }
 
-    // Validate student info only if not "no roommates"
     if (!noRoommates) {
       const invalidStudents = formData.studentsInfo.some(
         student => !student.studentId.trim() || !student.batch.trim()
@@ -117,20 +128,17 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (!validate()) {
       return
     }
 
     setIsSubmitting(true)
-    
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000))
-    
+
     onSubmit(formData)
     setIsSubmitting(false)
-    
-    // Reset form
+
     setNoRoommates(false)
     setFormData({
       area: '',
@@ -140,8 +148,8 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
       studentsInfo: [{ studentId: '', batch: '' }],
       rent: '',
       facilities: '',
-      contactInfo: '',
-      isGirlsOnly: false
+      phone_number: User?.phone_number || '',
+      isGirlsOnly: User?.gender === 'Female'
     })
   }
 
@@ -160,7 +168,6 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Location Section */}
         <div>
           <label className="mb-2 block text-sm font-semibold text-gray-700">
             Area <span className="text-[#e50914]">*</span>
@@ -171,9 +178,8 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
             value={formData.area}
             onChange={handleChange}
             placeholder="e.g., Board Bazar, Rajendrapur"
-            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${
-              errors.area ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
-            }`}
+            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.area ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
+              }`}
           />
           {errors.area && <p className="mt-1 text-xs text-red-600">{errors.area}</p>}
         </div>
@@ -188,9 +194,8 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
             onChange={handleChange}
             placeholder="House/Flat number, Road, detailed location"
             rows="2"
-            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${
-              errors.fullAddress ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
-            }`}
+            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.fullAddress ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
+              }`}
           />
           {errors.fullAddress && <p className="mt-1 text-xs text-red-600">{errors.fullAddress}</p>}
         </div>
@@ -205,14 +210,12 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
             value={formData.floor}
             onChange={handleChange}
             placeholder="e.g., 2nd Floor, Ground Floor"
-            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${
-              errors.floor ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
-            }`}
+            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.floor ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
+              }`}
           />
           {errors.floor && <p className="mt-1 text-xs text-red-600">{errors.floor}</p>}
         </div>
 
-        {/* Students Information */}
         <div>
           <div className="mb-3 flex items-center justify-between">
             <label className="text-sm font-semibold text-gray-700">
@@ -221,24 +224,20 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
             <button
               type="button"
               onClick={handleNoRoommatesToggle}
-              className={`rounded-lg border-2 px-3 py-1.5 text-xs font-semibold transition-all ${
-                noRoommates
-                  ? 'border-[#e50914] bg-[#e50914] text-white'
-                  : 'border-gray-300 text-gray-600 hover:border-[#e50914] hover:bg-[#e50914]/5'
-              }`}
+              className={`rounded-lg border-2 px-3 py-1.5 text-xs font-semibold transition-all ${noRoommates
+                ? 'border-[#e50914] bg-[#e50914] text-white'
+                : 'border-gray-300 text-gray-600 hover:border-[#e50914] hover:bg-[#e50914]/5'
+                }`}
             >
               {noRoommates ? '✓ No roommates yet' : 'No roommates yet'}
             </button>
           </div>
-          
+
           {!noRoommates && (
             <>
               <div className="space-y-3">
                 {formData.studentsInfo.map((student, index) => (
-                  <div
-                    key={index}
-                    className="rounded-lg border-2 border-gray-100 bg-gray-50 p-4"
-                  >
+                  <div key={index} className="rounded-lg border-2 border-gray-100 bg-gray-50 p-4">
                     <div className="mb-2 flex items-center justify-between">
                       <span className="text-xs font-semibold text-gray-600">Student {index + 1}</span>
                       {formData.studentsInfo.length > 1 && (
@@ -254,30 +253,25 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <input
-                          type="text"
-                          value={student.studentId}
-                          onChange={(e) => handleStudentInfoChange(index, 'studentId', e.target.value)}
-                          placeholder="Student ID"
-                          className="w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
-                        />
-                      </div>
-                      <div>
-                        <input
-                          type="text"
-                          value={student.batch}
-                          onChange={(e) => handleStudentInfoChange(index, 'batch', e.target.value)}
-                          placeholder="Batch (e.g., 2020)"
-                          className="w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
-                        />
-                      </div>
+                      <input
+                        type="text"
+                        value={student.studentId}
+                        onChange={(e) => handleStudentInfoChange(index, 'studentId', e.target.value)}
+                        placeholder="Student ID"
+                        className="w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
+                      />
+                      <input
+                        type="text"
+                        value={student.batch}
+                        onChange={(e) => handleStudentInfoChange(index, 'batch', e.target.value)}
+                        placeholder="Batch (e.g., 2020)"
+                        className="w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
+                      />
                     </div>
                   </div>
                 ))}
               </div>
               {errors.studentsInfo && <p className="mt-1 text-xs text-red-600">{errors.studentsInfo}</p>}
-              
               <button
                 type="button"
                 onClick={addStudent}
@@ -292,7 +286,6 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
           )}
         </div>
 
-        {/* Rent */}
         <div>
           <label className="mb-2 block text-sm font-semibold text-gray-700">
             Rent Amount (৳) <span className="text-[#e50914]">*</span>
@@ -303,15 +296,12 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
             value={formData.rent}
             onChange={handleChange}
             placeholder="Enter monthly rent"
-            min="0"
-            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${
-              errors.rent ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
-            }`}
+            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.rent ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
+              }`}
           />
           {errors.rent && <p className="mt-1 text-xs text-red-600">{errors.rent}</p>}
         </div>
 
-        {/* Facilities */}
         <div>
           <label className="mb-2 block text-sm font-semibold text-gray-700">
             Facilities <span className="text-gray-500 text-xs">(Optional)</span>
@@ -324,25 +314,23 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
             rows="3"
             className="w-full rounded-lg border-2 border-gray-200 px-4 py-2.5 text-sm transition-colors focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
           />
-          <p className="mt-1 text-xs text-gray-500">List available facilities separated by commas</p>
         </div>
 
-        {/* Girls Only Checkbox */}
+        {/* Girls Only Checkbox - Fully unreachable/locked for Males */}
         <div>
           <button
             type="button"
+            disabled={User?.gender === 'Female' || User?.gender === 'Male'}
             onClick={() => setFormData(prev => ({ ...prev, isGirlsOnly: !prev.isGirlsOnly }))}
-            className={`flex w-full items-center gap-3 rounded-lg border-2 px-4 py-3 transition-all ${
-              formData.isGirlsOnly
-                ? 'border-pink-500 bg-pink-50'
-                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-            }`}
+            className={`flex w-full items-center gap-3 rounded-lg border-2 px-4 py-3 transition-all ${formData.isGirlsOnly
+              ? 'border-pink-500 bg-pink-50'
+              : 'border-gray-200 hover:border-gray-300'
+              } ${User?.gender === 'Female' || User?.gender === 'Male' ? 'cursor-not-allowed opacity-80' : ''}`}
           >
-            <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${
-              formData.isGirlsOnly
-                ? 'border-pink-500 bg-pink-500'
-                : 'border-gray-300'
-            }`}>
+            <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${formData.isGirlsOnly
+              ? 'border-pink-500 bg-pink-500'
+              : 'border-gray-300'
+              }`}>
               {formData.isGirlsOnly && (
                 <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -353,53 +341,41 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
               <span className={`text-sm font-semibold ${formData.isGirlsOnly ? 'text-pink-700' : 'text-gray-700'}`}>
                 Girls Only
               </span>
-              <p className="text-xs text-gray-500">This accommodation is for female students only</p>
+              <p className="text-xs text-gray-500">
+                {User?.gender === 'Female'
+                  ? 'Automatically set for female users'
+                  : User?.gender === 'Male'
+                    ? 'General listing (Restricted for male profiles)'
+                    : 'This accommodation is for female students only'}
+              </p>
             </div>
           </button>
         </div>
 
-        {/* Contact Info */}
         <div>
           <label className="mb-2 block text-sm font-semibold text-gray-700">
             Contact Number <span className="text-[#e50914]">*</span>
           </label>
           <input
             type="tel"
-            name="contactInfo"
-            value={formData.contactInfo}
+            name="phone_number"
+            value={formData.phone_number}
             onChange={handleChange}
-            placeholder="01XXXXXXXXX (11 digits)"
+            placeholder="01XXXXXXXXX"
             maxLength="11"
-            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${
-              errors.contactInfo ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
-            }`}
+            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.phone_number ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
+              }`}
           />
-          {errors.contactInfo && <p className="mt-1 text-xs text-red-600">{errors.contactInfo}</p>}
+          {errors.phone_number && <p className="mt-1 text-xs text-red-600">{errors.phone_number}</p>}
         </div>
 
-        {/* Submit Button */}
         <div className="pt-4">
           <button
             type="submit"
             disabled={isSubmitting}
-            className="relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#e50914] to-[#b00020] px-6 py-3.5 font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 active:translate-y-0 active:scale-[0.98]"
+            className="relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#e50914] to-[#b00020] px-6 py-3.5 font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? (
-              <div className="flex items-center justify-center gap-3">
-                <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                <span>Posting Ad...</span>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center gap-2">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Post Advertisement</span>
-              </div>
-            )}
+            {isSubmitting ? "Posting Ad..." : "Post Advertisement"}
           </button>
         </div>
       </form>

@@ -14,19 +14,44 @@ datasource db {
 
 //npx prisma migrate dev --name <migration_name>
 // npx prisma generate
-model Users {
-  users_id       Int            @id @default(autoincrement())
-  user_name      String
-  email          String         @unique
-  phone_number   String?        
-  
-  bloodRequests  BloodRequest[]
-  donorRecords   DonorRecord?   
-  lostItems      LostItem[]     
 
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @default(now())
+model Users {
+  users_id      Int               @id @default(autoincrement())
+  user_name     String
+  email         String            @unique
+  phone_number  String?
+  gender        String?
+  image         String?
+
+
+  bloodRequests BloodRequest[]
+  donorRecords  DonorRecord?
+  lostItems     LostItem[]
+  roommateAds   RoommateListing[] 
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 }
+
+model RoommateListing {
+  id              Int      @id @default(autoincrement())
+  area            String
+  fullAddress     String
+  floor           String
+  currentStudents Int
+  studentsInfo    Json     // Stores array of objects like [{studentId, batch}]
+  rent            Int
+  facilities      String?
+  phone_number    String
+  isGirlsOnly     Boolean  @default(false)
+  
+  postedDate      DateTime @default(now())
+
+  // Relation to User
+  postedBy        Int
+  user            Users    @relation(fields: [postedBy], references: [users_id])
+}
+
 
 model LostItem {
   item_id      Int      @id @default(autoincrement())
