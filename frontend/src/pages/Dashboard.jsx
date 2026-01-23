@@ -359,7 +359,7 @@ export default function Dashboard() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
       ),
-      link: 'http://localhost:5172',
+      link: '/home',
       color: 'from-[#b00020] to-[#e50914]'
     },
     {
@@ -463,7 +463,7 @@ export default function Dashboard() {
             {features.map((feature, index) => (
               <a
                 key={feature.id}
-                href={feature.id === 5 ? "http://localhost:5172" : feature.link}
+                href={feature.id === 5 ? "/home" : feature.link}
                 className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl animate-[pop-in_550ms_cubic-bezier(0.22,1,0.36,1)_both]"
                 style={{ animationDelay: `${index * 50}ms` }}
               >

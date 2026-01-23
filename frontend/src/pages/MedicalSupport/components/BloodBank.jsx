@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Users, Droplet, Phone, MapPin, Clock, ToggleLeft, ToggleRight, Filter, Edit } from 'lucide-react'
+import { Users, Droplet, Phone, MapPin, Clock, ToggleLeft, ToggleRight, Filter, Edit,LoaderIcon } from 'lucide-react'
 import AddDonorModal from './modals/AddDonorModal'
 import RequestBloodModal from './modals/RequestBloodModal'
 import { AuthContext } from '../../../context/AuthContext'
@@ -116,7 +116,7 @@ export default function BloodBank() {
                             // New: Update Profile button next to Request Blood button for registered donors
                             <button
                                 onClick={handleUpdateClick}
-                                className="inline-flex items-center gap-2 rounded-full border-2 border-blue-500 bg-white px-6 py-3 font-semibold text-blue-500 transition hover:bg-blue-500 hover:text-white"
+                                className="inline-flex items-center gap-2 rounded-full border-2 border-red-500 bg-white px-6 py-3 font-semibold text-red-500 transition hover:bg-red-600 hover:text-white"
                             >
                                 <Edit className="h-5 w-5" />
                                 Update Profile
@@ -238,8 +238,7 @@ export default function BloodBank() {
                                                         : 'bg-red-500 hover:bg-red-600'
                                                     }`}
                                             >
-                                                {donor.isActive ? <ToggleRight className="h-5 w-5" /> : <ToggleLeft className="h-5 w-5" />}
-                                                {donor.isActive ? 'Set Inactive' : 'Set Active'}
+                                                {!donorLoading ? (donor.isActive ? 'Set Inactive' : 'Set Active') : (<h1 className='rotate'><LoaderIcon /></h1>)}
                                             </button>
                                         </div>
                                     ) : (
