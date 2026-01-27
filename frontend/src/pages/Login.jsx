@@ -59,9 +59,33 @@ export default function Login() {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState('');
   if (loading === true) {
-    return <div className='absolute inset-0 flex justify-center items-center  w-full h-screen  text-white'>
-      <LoaderIcon size={'40'} className='rotate' />
-    </div>
+    return (
+      <div className='absolute inset-0 flex flex-col justify-center items-center w-full h-screen bg-white'>
+        <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(rgba(176,0,32,0.15)_1px,transparent_1px)] [background-size:20px_20px]" aria-hidden="true" />
+        
+        <div className="relative z-10 flex flex-col items-center gap-6 animate-[fade-in_500ms_ease-out]">
+          <div className="relative">
+            <div className="absolute inset-0 blur-2xl opacity-50 bg-[#e50914] rounded-full animate-pulse" />
+            <LoaderIcon size={56} className='text-[#b00020] animate-spin relative' />
+          </div>
+          
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl font-bold text-[#b00020] tracking-tight">
+              Logging you in...
+            </h2>
+            <p className="text-[#b00020]/70 text-sm font-medium">
+              Please wait while we verify your credentials
+            </p>
+          </div>
+          
+          <div className="flex gap-2 mt-2">
+            <div className="w-2 h-2 bg-[#b00020] rounded-full animate-[bounce_1s_ease-in-out_0s_infinite]" />
+            <div className="w-2 h-2 bg-[#b00020] rounded-full animate-[bounce_1s_ease-in-out_0.2s_infinite]" />
+            <div className="w-2 h-2 bg-[#b00020] rounded-full animate-[bounce_1s_ease-in-out_0.4s_infinite]" />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const handleSubmit = async () => {
@@ -147,6 +171,7 @@ export default function Login() {
       <style>{`
         @keyframes pop-in { 0% { opacity: 0; transform: scale(0.92);} 100% { opacity: 1; transform: scale(1);} }
         @keyframes fade-up { 0% { opacity: 0; transform: translateY(12px);} 100% { opacity: 1; transform: translateY(0);} }
+        @keyframes fade-in { 0% { opacity: 0;} 100% { opacity: 1;} }
         @keyframes glow { 0% { text-shadow: 0 0 0 rgba(176,0,32,0); } 50% { text-shadow: 0 6px 24px rgba(176,0,32,0.25); } 100% { text-shadow: 0 0 0 rgba(176,0,32,0);} }
       `}</style>
     </main>

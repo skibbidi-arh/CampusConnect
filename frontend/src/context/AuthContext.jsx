@@ -1,21 +1,21 @@
 import axios from 'axios'
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import React from 'react'
 
-const AContext = createContext(null)
-export const AuthContext = () => { return useContext(AContext) }
+const AContext = React.createContext(null)
+export const AuthContext = () => { return React.useContext(AContext) }
 
 const AutoAuth = ({ children }) => {
 
-    const [User, setUser] = useState(null)
-    const [loading, setLoading] = useState(true)
+    const [User, setUser] = React.useState(null)
+    const [loading, setLoading] = React.useState(true)
 
-    const logout = useCallback(() => {
+    const logout = React.useCallback(() => {
         sessionStorage.removeItem('authToken') 
         setUser(null)
         setLoading(false)
     }, [])
 
-    const fetchCurrentUser = useCallback(async () => {
+    const fetchCurrentUser = React.useCallback(async () => {
         setLoading(true);
         const token = sessionStorage.getItem('authToken'); 
         
@@ -51,7 +51,7 @@ const AutoAuth = ({ children }) => {
         }
     }, [logout]);
 
-    useEffect(() => {
+    React.useEffect(() => {
         fetchCurrentUser();
         console.log(User)
     }, [fetchCurrentUser])

@@ -36,9 +36,9 @@ export default function FeedbackForm() {
     const inputClasses = "w-full px-4 py-3 mb-4 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 text-sm outline-none transition-all focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 placeholder-gray-400";
 
     return (
-        <div className="flex justify-center items-center w-full py-10 bg-gray-50 min-h-[80vh]">
+        <div className="flex justify-center items-center w-full">
             <form
-                className="w-full max-w-[550px] bg-white p-10 rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/50"
+                className="w-full max-w-[700px] bg-white p-10 rounded-2xl border border-gray-100 shadow-xl"
                 onSubmit={handleSubmit}
             >
                 <div className="text-center mb-8">
