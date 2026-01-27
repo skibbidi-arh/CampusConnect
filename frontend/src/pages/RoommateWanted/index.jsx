@@ -6,10 +6,12 @@ import RoommateCard from './components/RoommateCard'
 import PostRoommateForm from './components/PostRoommateForm'
 import Loading from '../../components/Loading'
 import { AuthContext } from '../../context/AuthContext' // Corrected import
+import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
 export default function RoommateWanted() {
   const { User, setUser } = AuthContext(); // Use the global Auth state
+  const navigate = useNavigate();
 
   const [showForm, setShowForm] = useState(false)
   const [showGenderModal, setShowGenderModal] = useState(false)
@@ -38,21 +40,21 @@ export default function RoommateWanted() {
     }
   }
 
-  // Fetch listings when component mounts
+  
   useEffect(() => {
     fetchAllListings()
   }, [])
-  const handlePostAdClick = () => {
-    console.log('This is before adding the gender here ok then ')
-    console.log(User)
-    if (!User?.gender) {
+
+  useEffect(() => {
+    if (User && User.gender === null) {
+      console.log('Gender is null, showing modal')
       setShowGenderModal(true)
-    } else {
-      setShowForm(true)
     }
+  }, [User])
+  const handlePostAdClick = () => {
+    setShowForm(true)
   }
 
-  // Handle gender update using the shared profile update logic
   const handleGenderUpdate = async (selectedGender) => {
     setIsUpdating(true);
     try {
@@ -74,7 +76,7 @@ export default function RoommateWanted() {
         sessionStorage.setItem('user', JSON.stringify(updatedUser));
 
         setShowGenderModal(false);
-        setShowForm(true);
+        // Don't automatically open the form
       }
     } catch (error) {
       console.error("Update failed:", error);
@@ -214,8 +216,8 @@ export default function RoommateWanted() {
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
           <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">One Last Thing!</h2>
-              <p className="text-gray-500 mt-2">To post ads, please select your gender for roommate matching.</p>
+              <h2 className="text-2xl font-bold text-gray-900">Welcome!</h2>
+              <p className="text-gray-500 mt-2">Please select your gender to access roommate listings.</p>
             </div>
 
             <div className="space-y-3">
@@ -232,7 +234,7 @@ export default function RoommateWanted() {
               ))}
             </div>
             <button
-              onClick={() => setShowGenderModal(false)}
+              onClick={() => navigate('/dashboard')}
               className="mt-6 w-full text-gray-400 text-sm font-medium"
             >
               Cancel
