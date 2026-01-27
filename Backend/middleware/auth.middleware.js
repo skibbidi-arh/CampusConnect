@@ -6,11 +6,7 @@ exports.generate = async (user, res) => {
 
     const isDev = process.env.NODE_ENV !== "production";
 
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: !isDev ? true : false,       
-        sameSite: !isDev ? "None" : "Lax",  
-    });
+ 
 
-    console.log("TOKEN_SET:", token);
+    return token;
 };

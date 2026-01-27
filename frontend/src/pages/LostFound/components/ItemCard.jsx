@@ -1,27 +1,28 @@
 import { useState } from 'react'
 
-export default function ItemCard({ item, index, onMarkAsFound, showMarkAsFound = false, isOwnItem = false, isHistory = false }) {
+export default function ItemCard({ item, index, onDelete, showMarkAsFound = false, isOwnItem = false, isHistory = false }) {
   const [showContact, setShowContact] = useState(false)
   const [copiedPhone, setCopiedPhone] = useState(false)
   const [copiedFacebook, setCopiedFacebook] = useState(false)
   const [showImageModal, setShowImageModal] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
+  console.log(item)
 
   const handleContact = () => {
     setShowContact(!showContact)
   }
 
-  const handleMarkFound = () => {
+  const handleDelete = () => {
     setShowConfirmModal(true)
   }
 
-  const confirmMarkAsFound = () => {
-    onMarkAsFound(item.id)
+  const confirmDelete = () => {
+    onDelete(item.item_id)
     setShowConfirmModal(false)
   }
 
   const handleCopyPhone = () => {
-    navigator.clipboard.writeText(item.phoneNumber)
+    navigator.clipboard.writeText(item.phone_number)
     setCopiedPhone(true)
     setTimeout(() => setCopiedPhone(false), 2000)
   }
@@ -36,14 +37,13 @@ export default function ItemCard({ item, index, onMarkAsFound, showMarkAsFound =
   return (
     <>
       <div
-        className={`group relative overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:shadow-lg animate-[pop-in_550ms_cubic-bezier(0.22,1,0.36,1)_both] ${
-          isHistory ? 'opacity-60' : ''
-        }`}
+        className={`group relative overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:shadow-lg animate-[pop-in_550ms_cubic-bezier(0.22,1,0.36,1)_both] ${isHistory ? 'opacity-60' : ''
+          }`}
         style={{ animationDelay: `${index * 50}ms` }}
       >
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 [background-image:radial-gradient(rgba(229,9,20,0.1)_1px,transparent_1px)] [background-size:20px_20px]" aria-hidden="true" />
-        
+
         {/* Status Badge */}
         {isHistory && (
           <div className="absolute top-3 right-3 z-20">
@@ -105,14 +105,14 @@ export default function ItemCard({ item, index, onMarkAsFound, showMarkAsFound =
             {/* Mark as Found Button - Only show in My Items tab for own items */}
             {showMarkAsFound && !isHistory && (
               <button
-                onClick={handleMarkFound}
-                className="w-full rounded-lg bg-gradient-to-r from-green-500 to-green-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg hover:from-green-600 hover:to-green-700 active:scale-95"
+                onClick={handleDelete}
+                className="w-full rounded-lg bg-gradient-to-r from-red-500 to-red-600 px-3 py-2 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg hover:from-red-600 hover:to-red-700 active:scale-95"
               >
                 <div className="flex items-center justify-center gap-2">
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  <span>Mark as Found</span>
+                  <span>Delete Item</span>
                 </div>
               </button>
             )}
@@ -129,10 +129,10 @@ export default function ItemCard({ item, index, onMarkAsFound, showMarkAsFound =
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     <span>Contact Owner</span>
-                    <svg 
-                      className={`h-3.5 w-3.5 transition-transform duration-300 ${showContact ? 'rotate-180' : ''}`} 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      className={`h-3.5 w-3.5 transition-transform duration-300 ${showContact ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -144,7 +144,7 @@ export default function ItemCard({ item, index, onMarkAsFound, showMarkAsFound =
                 {showContact && (
                   <div className="rounded-lg border-2 border-gray-200 bg-gray-50 p-3 space-y-2.5 animate-[slide-down_300ms_ease-out]">
                     {/* Phone Number */}
-                    {item.phoneNumber && (
+                    {item.phone_number && (
                       <div className="flex items-start gap-2.5">
                         <div className="rounded-lg bg-white p-1.5 shadow-sm">
                           <svg className="h-4 w-4 text-[#b00020]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,13 +152,14 @@ export default function ItemCard({ item, index, onMarkAsFound, showMarkAsFound =
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-gray-500 mb-0.5">Phone Number</p>
+                          <p className="text-xs font-semibold text-gray-500 mb-0.5">{item.phone_number}</p>
                           <div className="flex items-center gap-2">
-                            <a 
-                              href={`tel:${item.phoneNumber}`}
+                            <a
+                              href={`tel:${item.phone_number}`}
                               className="text-xs font-semibold text-gray-800 hover:text-[#b00020] transition-colors truncate"
                             >
-                              {item.phoneNumber}
+                              {item.phone_number}
+
                             </a>
                             <button
                               onClick={handleCopyPhone}
@@ -176,13 +177,13 @@ export default function ItemCard({ item, index, onMarkAsFound, showMarkAsFound =
                       <div className="flex items-start gap-2.5">
                         <div className="rounded-lg bg-white p-1.5 shadow-sm">
                           <svg className="h-4 w-4 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-semibold text-gray-500 mb-0.5">Facebook Profile</p>
                           <div className="flex items-center gap-2">
-                            <a 
+                            <a
                               href={item.facebookId.startsWith('http') ? item.facebookId : `https://facebook.com/${item.facebookId}`}
                               target="_blank"
                               rel="noopener noreferrer"
@@ -210,7 +211,7 @@ export default function ItemCard({ item, index, onMarkAsFound, showMarkAsFound =
 
       {/* Image Modal */}
       {showImageModal && item.image && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 animate-[fade-in_200ms_ease-out]"
           onClick={() => setShowImageModal(false)}
         >
@@ -235,24 +236,24 @@ export default function ItemCard({ item, index, onMarkAsFound, showMarkAsFound =
 
       {/* Confirmation Modal */}
       {showConfirmModal && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-[fade-in_200ms_ease-out]"
           onClick={() => setShowConfirmModal(false)}
         >
-          <div 
+          <div
             className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-[pop-in_300ms_ease-out]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 rounded-full bg-green-100 p-3">
-                <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <div className="flex-shrink-0 rounded-full bg-red-100 p-3">
+                <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Mark as Found?</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Item?</h3>
                 <p className="text-sm text-gray-600 mb-6">
-                  Are you sure you want to mark this item as found? It will be removed from the lost items list.
+                  Are you sure you want to delete this item? This action cannot be undone.
                 </p>
                 <div className="flex gap-3 justify-end">
                   <button
@@ -262,10 +263,10 @@ export default function ItemCard({ item, index, onMarkAsFound, showMarkAsFound =
                     Cancel
                   </button>
                   <button
-                    onClick={confirmMarkAsFound}
-                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold text-sm hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg transition-all"
+                    onClick={confirmDelete}
+                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold text-sm hover:from-red-600 hover:to-red-700 shadow-md hover:shadow-lg transition-all"
                   >
-                    Yes, Mark as Found
+                    Yes, Delete
                   </button>
                 </div>
               </div>

@@ -1,7 +1,11 @@
 import { useState } from 'react'
+import { AuthContext } from '../../../context/AuthContext'
 
-export default function RoommateCard({ listing }) {
+export default function RoommateCard({ listing, onCancel }) {
+  const { User } = AuthContext();
   const [copied, setCopied] = useState(false)
+
+  const isOwner = User?.users_id === listing.postedBy;
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
@@ -14,74 +18,10 @@ export default function RoommateCard({ listing }) {
     const now = new Date()
     const diffTime = Math.abs(now - date)
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-    
+
     if (diffDays === 0) return 'Today'
     if (diffDays === 1) return 'Yesterday'
     return `${diffDays} days ago`
-  }
-
-  // Facility icons mapping
-  const facilityIcons = {
-    'WiFi': (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
-      </svg>
-    ),
-    'Washing Machine': (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-      </svg>
-    ),
-    'Geyser': (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    ),
-    'Meal Service': (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-      </svg>
-    ),
-    'Parking': (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-      </svg>
-    ),
-    'Generator': (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    ),
-    'AC': (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-      </svg>
-    ),
-    'Attached Bathroom': (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-    'Balcony': (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-    'Study Room': (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-      </svg>
-    ),
-    'Common Kitchen': (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-      </svg>
-    ),
-    'Laundry Service': (
-      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-      </svg>
-    )
   }
 
   return (
@@ -110,7 +50,7 @@ export default function RoommateCard({ listing }) {
               {listing.floor}
             </div>
           </div>
-          
+
           <div className="text-right">
             <div className="text-3xl font-bold">৳{listing.rent.toLocaleString()}</div>
             <div className="text-sm text-white/80">per month</div>
@@ -120,7 +60,6 @@ export default function RoommateCard({ listing }) {
 
       {/* Content Section */}
       <div className="p-6">
-        {/* Current Students Info */}
         <div className="mb-5">
           <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
             <svg className="h-5 w-5 text-[#e50914]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,7 +67,7 @@ export default function RoommateCard({ listing }) {
             </svg>
             Current Roommates ({listing.currentStudents})
           </div>
-          
+
           {listing.currentStudents === 0 ? (
             <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center">
               <p className="text-sm font-medium text-gray-600">No roommates yet</p>
@@ -156,7 +95,6 @@ export default function RoommateCard({ listing }) {
           )}
         </div>
 
-        {/* Facilities */}
         {listing.facilities && listing.facilities.trim() && (
           <div className="mb-5">
             <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
@@ -165,14 +103,13 @@ export default function RoommateCard({ listing }) {
               </svg>
               Facilities
             </div>
-            
             <div className="rounded-lg border-2 border-gray-100 bg-gray-50 p-4">
               <p className="text-sm text-gray-700">{listing.facilities}</p>
             </div>
           </div>
         )}
 
-        {/* Contact & Footer */}
+        {/* Contact & Cancel Action */}
         <div className="border-t-2 border-gray-100 pt-5">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -186,32 +123,46 @@ export default function RoommateCard({ listing }) {
             </div>
           </div>
 
-          <button
-            onClick={() => copyToClipboard(listing.contactInfo)}
-            className="group/btn relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#e50914] to-[#b00020] px-4 py-3 text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 active:scale-[0.98]"
-          >
-            <div className="relative z-10 flex items-center justify-center gap-2">
-              {copied ? (
-                <>
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="font-semibold">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  <span className="font-semibold">{listing.contactInfo}</span>
-                  <svg className="h-5 w-5 transition-transform group-hover/btn:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                </>
-              )}
-            </div>
-            <div className="absolute inset-0 -z-0 bg-white opacity-0 transition-opacity group-hover/btn:opacity-10" />
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => copyToClipboard(listing.phone_number)}
+              className={`group/btn relative ${isOwner ? 'w-[85%]' : 'w-full'} overflow-hidden rounded-xl bg-gradient-to-r from-[#e50914] to-[#b00020] px-4 py-3 text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 active:scale-[0.98]`}
+            >
+              <div className="relative z-10 flex items-center justify-center gap-2">
+                {copied ? (
+                  <>
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="font-semibold">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <span className="font-semibold">{listing.phone_number}</span>
+                    <svg className="h-5 w-5 transition-transform group-hover/btn:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </>
+                )}
+              </div>
+              <div className="absolute inset-0 -z-0 bg-white opacity-0 transition-opacity group-hover/btn:opacity-10" />
+            </button>
+
+            {isOwner && (
+              <button
+                onClick={() => onCancel(listing.id)}
+                className="flex w-[15%] items-center justify-center rounded-xl border-2 border-red-100 bg-red-50 text-red-600 transition-all hover:bg-red-100 hover:text-red-700"
+                title="Cancel Listing"
+              >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

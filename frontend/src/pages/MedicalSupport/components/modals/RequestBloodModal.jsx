@@ -10,13 +10,12 @@ export default function RequestBloodModal({ isOpen, onClose }) {
 
     const initialPhoneNumber = User?.phone_number || User?.user?.phone_number || '';
 
-    // Form State
     const [formData, setFormData] = useState({
         blood_group: '',
         phone_number: initialPhoneNumber,
         deadline: '',
         location: '',
-        // is_emergency: false,
+        is_emergency: false,
     });
     
     const [submissionError, setSubmissionError] = useState(null);
@@ -28,7 +27,6 @@ export default function RequestBloodModal({ isOpen, onClose }) {
         const { name, value, type, checked } = e.target;
         setFormData((prev) => ({
             ...prev,
-            // Handle checkbox state correctly
             [name]: type === 'checkbox' ? checked : value,
         }));
         setSubmissionError(null);
@@ -39,7 +37,6 @@ export default function RequestBloodModal({ isOpen, onClose }) {
         setSubmissionError(null);
         setIsSubmitting(true);
 
-        // Simple validation check
         if (!formData.blood_group || !formData.phone_number || !formData.location) {
             setSubmissionError('Please fill out the blood group, mobile number, and location.');
             setIsSubmitting(false);
@@ -47,19 +44,16 @@ export default function RequestBloodModal({ isOpen, onClose }) {
         }
 
         try {
-            // Call the context function to create the request
             await createReciever(formData);
             
-            // Show success toast
             toast.success('Blood request submitted successfully! Donors will be notified.');
             
-            // Success: Reset form and close modal
             setFormData({
                 blood_group: '',
                 phone_number: initialPhoneNumber,
                 deadline: '',
                 location: '',
-                
+                is_emergency: false,
             });
             
             onClose();
@@ -74,7 +68,7 @@ export default function RequestBloodModal({ isOpen, onClose }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div  className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
+            <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
                 <div className="mb-6 flex items-center justify-between">
                     <h3 className="text-2xl font-bold text-[#e50914]">Submit Blood Request</h3>
                     <button
@@ -94,7 +88,6 @@ export default function RequestBloodModal({ isOpen, onClose }) {
                         </div>
                     )}
                     
-                    {/* Blood Group */}
                     <div>
                         <label className="mb-2 block text-sm font-semibold text-gray-700">
                             Blood Group
@@ -118,7 +111,6 @@ export default function RequestBloodModal({ isOpen, onClose }) {
                         </select>
                     </div>
 
-                    {/* Mobile Number */}
                     <div>
                         <label className="mb-2 block text-sm font-semibold text-gray-700">
                             Mobile Number
@@ -134,21 +126,19 @@ export default function RequestBloodModal({ isOpen, onClose }) {
                         />
                     </div>
 
-                    {/* Blood Due Date */}
                     <div>
                         <label className="mb-2 block text-sm font-semibold text-gray-700">
                             Blood Due Date
                         </label>
                         <input
                             name="deadline"
-                            value={formData.due_date}
+                            value={formData.deadline}
                             onChange={handleChange}
                             type="date"
                             className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
                         />
                     </div>
 
-                    {/* Location */}
                     <div>
                         <label className="mb-2 block text-sm font-semibold text-gray-700">
                             Location
@@ -164,7 +154,6 @@ export default function RequestBloodModal({ isOpen, onClose }) {
                         />
                     </div>
 
-                    {/* Emergency Request Checkbox */}
                     <div className={`rounded-lg border-2 p-4 transition ${
                         formData.is_emergency 
                             ? 'border-[#e50914] bg-red-50' 

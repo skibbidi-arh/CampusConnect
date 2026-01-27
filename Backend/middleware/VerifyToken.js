@@ -1,33 +1,40 @@
 const jwt = require('jsonwebtoken');
 const prisma = require('../src/config/prisma');
 exports.verifyToken = async (req, res, next) => {
-    const token = req.cookies['token']
+    // 1. Extract the Authorization header
+    const authHeader = req.headers['authorization'];
+    console.log(authHeader)
 
-    
-    if (!token) {
-        console.log("Error: No JWT token found in cookies.");
-        
-        return res.status(401).json({ 
-            success: false, 
-            message: "Authentication required. No session token found." 
+    // 2. Check if the header exists and starts with 'Bearer '
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.log("Error: Authorization header missing or incorrectly formatted.");
+
+        return res.status(401).json({
+            success: false,
+            message: "Authentication required. Please send JWT in the Authorization header."
         });
     }
 
+    // 3. Extract the token string (remove "Bearer ")
+    const token = authHeader.split(' ')[1];
+
     try {
-    
+
+        // 4. Verify the token
         const decode = jwt.verify(token, 'Blink')
         console.log("TOKEN DECODED:", decode);
 
-       const user = await prisma.users.findUnique({
+        const user = await prisma.users.findUnique({
             where: {
-        
-                email: decode.email, 
+                email: decode.email,
             },
             include: {
-                
+
             },
         });
-        decode.user_id= user.users_id
+
+        // 5. Attach user data and continue
+        decode.user_id = user.users_id
         console.log('ashceh')
         req.verifiedUser = decode
         console.log(decode)
@@ -35,10 +42,11 @@ exports.verifyToken = async (req, res, next) => {
     }
     catch (error) {
         console.error("Error: Invalid or expired JWT.", error.message);
-        res.clearCookie('token'); 
-        return res.status(403).json({ 
-            success: false, 
-            message: "Invalid session. Please log in again." 
+
+
+        return res.status(403).json({
+            success: false,
+            message: "Invalid token session. Please log in again."
         });
     }
 

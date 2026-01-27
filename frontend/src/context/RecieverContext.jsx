@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'; // <-- MUST import useCallback
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { AuthContext } from './AuthContext';
 
@@ -21,13 +21,21 @@ const RecieverProvider = ({ children }) => {
     const [recieverLoading, setRecieverLoading] = useState(true);
     const [recieverError, setRecieverError] = useState(null);
 
-    // FIX 1: Wrap fetchRecievers in useCallback to stabilize the function identity.
     const fetchRecievers = useCallback(async () => {
         setRecieverLoading(true);
         setRecieverError(null);
+        
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            setRecieverLoading(false);
+            return;
+        }
+        
         try {
             const response = await axios.get('http://localhost:4000/api/request/all', {
-                withCredentials: true
+                headers: {
+                    'Authorization': `Bearer ${token}` 
+                }
             });
             const requestList = response.data.requests;
             console.log(requestList); 
@@ -40,21 +48,27 @@ const RecieverProvider = ({ children }) => {
             setRecieverLoading(false);
             setRecievers([]);
         }
-    // CRITICAL: Empty dependency array means this function is only created once, ensuring stability.
     }, []); 
     
-    // FIX 2: Wrap createReciever in useCallback, as it's exposed and depends on fetchRecievers
     const createReciever = useCallback(async (requestData) => {
         setRecieverLoading(true);
         setRecieverError(null);
         console.log('Creating reciever with data:', requestData);
+        
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            setRecieverLoading(false);
+            throw new Error("Cannot create request: No authentication token found.");
+        }
+        
         try {
             const response = await axios.post('http://localhost:4000/api/request/create', requestData, {
-                withCredentials: true
+                headers: {
+                    'Authorization': `Bearer ${token}` 
+                }
             });
             console.log('Reciever created:', response.data);
             
-            // Depends on fetchRecievers, which is stable, so no loop is created here.
             await fetchRecievers(); 
             
             return response.data;
@@ -65,9 +79,8 @@ const RecieverProvider = ({ children }) => {
             setRecieverError(msg);
             throw new Error(msg);
         }
-    }, [fetchRecievers]); // Depends on stable fetchRecievers
+    }, [fetchRecievers]); 
 
-    // This useEffect is now safe because fetchRecievers is stable.
     useEffect(() => {
         if (currentUserEmail) {
             fetchRecievers();

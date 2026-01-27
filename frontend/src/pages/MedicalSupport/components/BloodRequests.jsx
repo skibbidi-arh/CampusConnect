@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { useRecieverContext } from '../../../context/RecieverContext'
 import { useDonorContext } from '../../../context/DonorContext'
 import { AuthContext } from '../../../context/AuthContext'
+import Loading from '../../../components/Loading'
 import axios from 'axios'
 
 export default function BloodRequests() {
@@ -11,60 +12,49 @@ export default function BloodRequests() {
     const currentUserEmail = User?.email || User?.user?.email;
 
     const {
-        recievers: contextRequests, // Source of truth from context
+        recievers: contextRequests,
         recieverLoading,
         recieverError,
-        fetchRecievers // Function to refresh data
+        fetchRecievers
     } = useRecieverContext()
 
     const { isRegisteredDonor } = useDonorContext()
 
-    // 1. Filter States
     const [selectedBloodGroup, setSelectedBloodGroup] = useState('all');
     const [searchLocation, setSearchLocation] = useState('');
     const [showEmergencyOnly, setShowEmergencyOnly] = useState(false);
-    const [minDueDate, setMinDueDate] = useState(''); // New state for filtering by date
+    const [minDueDate, setMinDueDate] = useState('');
 
-    // Local State for Display Array (Filtering target)
     const [filteredRequests, setFilteredRequests] = useState([]);
 
-    // Other States
     const [isCancelling, setIsCancelling] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [requestToDelete, setRequestToDelete] = useState(null);
     const bloodGroups = ['all', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 
-    // 2. Initial Data Fetch (Runs once on component mount or user change)
     useEffect(() => {
-        // Fetch only if the context hasn't loaded data yet
         if (!contextRequests || contextRequests.length === 0) {
             fetchRecievers()
         }
     }, [fetchRecievers])
 
-    // 3. EFFECTIVE FILTERING: Runs ONLY when the source data or filters change
     useEffect(() => {
-        const today = new Date().toISOString().split('T')[0]; // Current date for comparison
+        const today = new Date().toISOString().split('T')[0];
 
         const processedList = (contextRequests ?? []).filter(request => {
             
-            // Filter 1: Blood Group
             const matchesBloodGroup = selectedBloodGroup === 'all' || request.blood_group === selectedBloodGroup;
             
-            // Filter 2: Location Search
             const locationMatch = request.location 
                 ? request.location.toLowerCase().includes(searchLocation.toLowerCase())
                 : false;
                 
-            // Filter 3: Emergency Status
             const matchesEmergency = !showEmergencyOnly || request.is_emergency;
 
-            // Filter 4: Due Date (Only show requests due on or after the selected min date)
             const matchesDueDate = !minDueDate || (request.deadline && request.deadline >= minDueDate);
             
-            // Ensure requests that are already past due are filtered out, or just focus on the minDueDate.
-            // For simplicity, we'll ensure the request is not explicitly in the past if no min date is set.
+            
             const isFutureOrToday = !request.due_date || request.due_date >= today;
 
             return matchesBloodGroup && locationMatch && matchesEmergency && matchesDueDate && isFutureOrToday;
@@ -73,7 +63,6 @@ export default function BloodRequests() {
         setFilteredRequests(processedList);
     }, [contextRequests, selectedBloodGroup, searchLocation, showEmergencyOnly, minDueDate]);
 
-    // 4. Cancellation Handler (Adjusted URL to /cancel/)
     const handleCancelRequest = async (requestId) => {
         setRequestToDelete(requestId);
         setShowDeleteConfirm(true);
@@ -85,18 +74,25 @@ export default function BloodRequests() {
         setIsCancelling(requestToDelete);
         setShowDeleteConfirm(false);
         
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            toast.error('Authentication required to cancel request.');
+            setIsCancelling(null);
+            setRequestToDelete(null);
+            return;
+        }
+
         try {
             console.log("Cancelling request with ID:", requestToDelete);
             
-            // Using the agreed-upon /cancel/ endpoint for better semantic DELETE operation
             await axios.delete(`http://localhost:4000/api/request/cancel/${requestToDelete}`, {
-                withCredentials: true
+                headers: {
+                    'Authorization': `Bearer ${token}` 
+                }
             });
 
-            // Show success toast
             toast.success('Blood request cancelled successfully!');
 
-            // Refresh the list from the context after successful deletion
             await fetchRecievers();
 
         } catch (error) {
@@ -113,7 +109,6 @@ export default function BloodRequests() {
         setRequestToDelete(null);
     };
 
-    // Copy phone number to clipboard
     const handleCopyPhone = (phoneNumber) => {
         navigator.clipboard.writeText(phoneNumber)
             .then(() => {
@@ -125,7 +120,7 @@ export default function BloodRequests() {
     };
 
     if (recieverLoading) {
-        return <div className="text-center py-12 text-lg font-semibold text-gray-700">Loading blood requests...</div>
+        return <Loading text="Loading blood requests" />
     }
 
     if (recieverError) {
@@ -134,7 +129,6 @@ export default function BloodRequests() {
 
     return (
         <div className="space-y-6">
-            {/* Confirmation Dialog Popup */}
             {showDeleteConfirm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4">
@@ -168,11 +162,9 @@ export default function BloodRequests() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="text-2xl font-bold text-gray-800">Blood Requests</h2>
 
-                {/* --- FILTER SECTION --- */}
                 <div className="rounded-2xl bg-white p-4 shadow-md flex flex-wrap gap-4 items-center">
                     <Filter className="h-5 w-5 text-gray-500" />
                     
-                    {/* Blood Group Filter */}
                     <select
                         value={selectedBloodGroup}
                         onChange={(e) => setSelectedBloodGroup(e.target.value)}
@@ -185,7 +177,6 @@ export default function BloodRequests() {
                         ))}
                     </select>
 
-                    {/* Location Search Input */}
                     <input
                         type="text"
                         placeholder="Location..."
@@ -194,7 +185,6 @@ export default function BloodRequests() {
                         className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 w-32 sm:w-auto"
                     />
 
-                    {/* Due Date Filter */}
                     <input
                         type="date"
                         value={minDueDate}
@@ -203,7 +193,6 @@ export default function BloodRequests() {
                         title="Filter by Minimum Due Date"
                     />
 
-                    {/* Emergency Filter */}
                     <div className="flex items-center gap-2">
                         <input
                             type="checkbox"
@@ -217,15 +206,12 @@ export default function BloodRequests() {
                         </label>
                     </div>
                 </div>
-                {/* --- END FILTER SECTION --- */}
             </div>
 
-            {/* Results Count */}
             <div className="text-sm text-gray-600">
                 {filteredRequests.length} {filteredRequests.length === 1 ? 'request' : 'requests'} found
             </div>
 
-            {/* Blood Requests List */}
             <div className="space-y-4">
                 {filteredRequests.length === 0 ? (
                     <div className="rounded-2xl bg-white p-12 text-center shadow-lg">
@@ -236,16 +222,14 @@ export default function BloodRequests() {
                     filteredRequests.map((request) => {
                         const isCurrentUserRequest = request.email === currentUserEmail;
 
-                        // Use requestId from the API response
                         const reqId = request.requestId; 
                         const currentlyCancelling = isCancelling === reqId;
                         const dueDate = request.deadline ? new Date(request.deadline).toLocaleDateString
-                        
                         ('en-US', { 
                             month: 'short', 
                             day: 'numeric', 
                             year: 'numeric' 
-                        }) : {dueDate};
+                        }) : '';
 
 
                         return (
@@ -303,7 +287,6 @@ export default function BloodRequests() {
                                         <p className="mt-3 text-xs text-gray-500">{request.timePosted || 'Recently posted'}</p>
                                     </div>
 
-                                    {/* Conditional Buttons */}
                                     {isCurrentUserRequest && (
                                         <button
                                             onClick={() => handleCancelRequest(reqId)}

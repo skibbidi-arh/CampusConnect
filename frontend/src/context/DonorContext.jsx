@@ -11,9 +11,6 @@ export const useDonorContext = () => {
 const DonorProvider = ({ children }) => {
     const { User } = AuthContext();
     
-    // 🛑 REMOVED THE CRASHING LINE: if(User===null){return null;}
-    
-    // Use the AuthContext status directly to determine user's email
     const currentUserEmail = User?.email || User?.user?.email;
 
     const [donors, setDonors] = useState([]);
@@ -21,10 +18,8 @@ const DonorProvider = ({ children }) => {
     const [donorLoading, setDonorLoading] = useState(true);
     const [donorError, setDonorError] = useState(null);
 
-    // FIX 1: Wrap fetchDonorsAndCheckStatus in useCallback to stabilize the function.
     const fetchDonorsAndCheckStatus = useCallback(async () => {
         
-        // 🚨 ADDED GUARD: Do not run fetch if there is no logged-in email.
         if (!currentUserEmail) {
             setDonorLoading(false);
             return;
@@ -32,9 +27,17 @@ const DonorProvider = ({ children }) => {
 
         setDonorLoading(true);
         setDonorError(null);
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            setDonorLoading(false);
+            return;
+        }
+        
         try {
             const response = await axios.get('http://localhost:4000/api/donor/getAllDonors', {
-                withCredentials: true
+                headers: {
+                    'Authorization': `Bearer ${token}` 
+                }
             });
             const donorList = response.data.donors;
             console.log('Fetched Donors:', donorList);
@@ -55,19 +58,25 @@ const DonorProvider = ({ children }) => {
         }
     }, [currentUserEmail]); 
     
-    // FIX 2: Wrap toggleDonorStatus in useCallback.
     const toggleDonorStatus = useCallback(async () => {
         
-        // 🚨 ADDED GUARD
         if (!currentUserEmail) {
             throw new Error("Cannot toggle status: User not logged in.");
         }
 
         setDonorLoading(true);
         setDonorError(null);
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            setDonorLoading(false);
+            throw new Error("Cannot toggle status: No authentication token found.");
+        }
+        
         try {
             const response = await axios.put('http://localhost:4000/api/donor/toggleDonorStatus', {}, {
-                withCredentials: true
+                headers: {
+                    'Authorization': `Bearer ${token}` 
+                }
             });
             
             await fetchDonorsAndCheckStatus(); 
@@ -81,14 +90,12 @@ const DonorProvider = ({ children }) => {
             setDonorError(msg);
             throw new Error(msg);
         }
-    }, [fetchDonorsAndCheckStatus, currentUserEmail]); // Added currentUserEmail dependency
+    }, [fetchDonorsAndCheckStatus, currentUserEmail]); 
 
-    // This useEffect is now safe because fetchDonorsAndCheckStatus is stable and has guards.
     useEffect(() => {
         if (currentUserEmail) {
             fetchDonorsAndCheckStatus();
         } else {
-            // Reset state if user logs out or is null on first load
             setDonors([]);
             setIsRegisteredDonor(false);
             setDonorLoading(false);

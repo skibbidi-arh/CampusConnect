@@ -21,32 +21,39 @@ exports.googleSignin = async (req, res) => {
 
         const domain = userEmail.split('@').pop();
 
-        // if (domain !== REQUIRED_DOMAIN) {
-        //     await adminAuth.revokeRefreshTokens(firebaseUID);
-        //     return res.status(403).json({
-        //         error: 'Unauthorized Domain',
-        //         message: `Only @${REQUIRED_DOMAIN} email allowed.`,
-        //     });
-        // }
+        if (domain !== REQUIRED_DOMAIN) {
+            await adminAuth.revokeRefreshTokens(firebaseUID);
+            return res.status(403).json({
+                error: 'Unauthorized Domain',
+                message: `Only @${REQUIRED_DOMAIN} email allowed.`,
+            });
+        }
 
-        await generateJWT.generate(decodedToken, res);
+        const token = await generateJWT.generate(decodedToken, res);
+        console.log("Generated JWT:", token);
         const user = await prisma.users.upsert({
             where: { email: userEmail },
 
             update: {
-
-                user_name: userEmail.split('@')[0],
             },
 
             create: {
-
-                user_name: userEmail.split('@')[0],
+                user_name: decodedToken.name || userEmail.split('@')[0],
                 email: userEmail
             },
 
-            select: { email: true, user_name: true ,phone_number:true}
+            select: {
+                users_id: true,
+                email: true,
+                user_name: true,
+                phone_number: true,
+                image: true,
+                gender: true
+            }
         });
-        console.log(user)
+
+        user.token = token;
+        console.log('this is the user', user)
 
         res.status(200).json({
             message: "Google Login Successful", user
@@ -56,7 +63,7 @@ exports.googleSignin = async (req, res) => {
         console.error("Authentication Error:", error);
         res.status(401).json({
             error: "Invalid Firebase token",
-            message: error.message,
+            message: "There was some Error",
         });
     }
 };
@@ -65,9 +72,9 @@ exports.logout = async (req, res) => {
     try {
         req.cookies['token'] = '';
         console.log('done')
-         res.status(200).json({ success: true, message: "Successfully logged out" })
-    } catch (error) { 
-             res.status(500).json({ success:false, message: "Error while logging out" })
+        res.status(200).json({ success: true, message: "Successfully logged out" })
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error while logging out" })
 
     }
 
@@ -83,7 +90,9 @@ exports.getMe = async (req, res) => {
                 users_id: true,
                 user_name: true,
                 email: true,
-                phone_number: true
+                phone_number: true,
+                image: true,
+                gender: true
             }
         });
         if (!user) {
@@ -96,3 +105,90 @@ exports.getMe = async (req, res) => {
         res.status(500).json({ message: "Server error while fetching user data" });
     }
 };
+exports.updateUserProfile = async (req, res) => {
+    try {
+        const { user_name, phone_number, image, gender } = req.body;
+        const userId = req.verifiedUser.user_id;
+
+        if (!userId) {
+            return res.status(404).json({ success: false, message: "User ID not found in session." });
+        }
+
+        const updatedUser = await prisma.users.update({
+            where: {
+                users_id: userId
+            },
+            data: {
+                ...(user_name && { user_name }),
+                ...(phone_number && { phone_number }),
+                ...(image && { image }),
+                ...(gender && { gender })
+            },
+            select: {
+                users_id: true,
+                user_name: true,
+                email: true,
+                phone_number: true,
+                gender: true,
+                image: true
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user: updatedUser
+        });
+
+    } catch (error) {
+        console.error("UPDATE ERROR:", error.message);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+// exports.updateUserProfile = async (req, res) => {
+
+//     try {
+//         // 1. Destructure 'image' from the request body
+//         const { user_name, phone_number, image } = req.body;
+//         const userId = req.verifiedUser.user_id;
+//         if (!userId) {
+//             return res.status(404).json({ success: false, message: "User ID not found in session." });
+//         }
+
+//         const updatedUser = await prisma.users.update({
+//             where: {
+//                 users_id: userId
+//             },
+//             data: {
+//                 ...(user_name && { user_name }),
+//                 ...(phone_number && { phone_number }),
+//                 // 2. Add the image to the update data
+//                 ...(image && { image })
+//             },
+//             select: {
+//                 users_id: true,
+//                 user_name: true,
+//                 email: true,
+//                 phone_number: true,
+//                 gender: true,
+//                 image: true
+//             }
+//         });
+
+//         res.status(200).json({
+//             success: true,
+//             message: "Profile updated successfully",
+//             user: updatedUser
+//         });
+
+//     } catch (error) {
+//         console.error("UPDATE ERROR:", error.message);
+//         res.status(500).json({
+//             success: false,
+//             message: "Internal Server Error"
+//         });
+//     }
+// };

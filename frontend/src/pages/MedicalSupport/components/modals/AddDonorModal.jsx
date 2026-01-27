@@ -3,22 +3,17 @@ import React, { useState, useEffect } from 'react'
 import { AuthContext } from '../../../../context/AuthContext'
 import axios from 'axios'
 
-// Accept donorToEdit prop (the data passed from BloodBank.jsx for the current user)
 export default function AddDonorModal({ isOpen, onClose, onSubmit, donorToEdit }) {
-    
+
     const { User } = AuthContext()
-    
+
     const isUpdateMode = !!donorToEdit;
 
-    // 1. Initial State Setup
     const getInitialFormData = (user, donor) => {
-        // Use existing donor data if in update mode, otherwise use registration defaults
         return {
-            // Use donorToEdit values if present, falling back to User context data, then empty string
             blood_group: donor?.blood_group || '',
             phone_number: donor?.phone_number || user?.phone_number || user?.user?.phone_number || '',
-            // Ensure last_donated is in yyyy-mm-dd format for the input field
-            last_donated: donor?.last_donated?.split('T')[0] || '', 
+            last_donated: donor?.last_donated?.split('T')[0] || '',
             location: donor?.location || '',
         };
     };
@@ -27,10 +22,8 @@ export default function AddDonorModal({ isOpen, onClose, onSubmit, donorToEdit }
     const [statusMessage, setStatusMessage] = useState({ message: '', type: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // 2. useEffect to Reset or Load Data when modal opens/changes context
     useEffect(() => {
         if (isOpen) {
-            // Re-initialize form data whenever the modal opens or donorToEdit prop changes
             setFormData(getInitialFormData(User, donorToEdit));
             setStatusMessage({ message: '', type: '' });
             setIsSubmitting(false);
@@ -43,34 +36,44 @@ export default function AddDonorModal({ isOpen, onClose, onSubmit, donorToEdit }
     const handleChange = (e) => {
         const { name, value } = e.target
         setFormData((prev) => ({ ...prev, [name]: value }))
-        setStatusMessage({ message: '', type: '' }); // Clear message on input change
+        setStatusMessage({ message: '', type: '' });
     }
 
     const handleSubmit = async (e) => {
+        console.log('hoist')
         e.preventDefault()
         setStatusMessage({ message: '', type: '' });
         setIsSubmitting(true);
-        
-        const endpoint = isUpdateMode 
-            ? 'http://localhost:4000/api/donor/update' 
-            : 'http://localhost:4000/api/donor/register'; 
-        
+
+        const endpoint = isUpdateMode
+            ? 'http://localhost:4000/api/donor/update'
+            : 'http://localhost:4000/api/donor/register';
+
         const method = isUpdateMode ? axios.put : axios.post;
-        
+
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            setStatusMessage({ message: 'Authentication required. Please log in again.', type: 'error' });
+            setIsSubmitting(false);
+            return;
+        }
+
         try {
             const response = await method(endpoint, formData, {
-                withCredentials: true
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
             setStatusMessage({ message: response.data.message || 'Success!', type: 'success' });
-            
+
             if (onSubmit) {
-                await onSubmit(); 
+                await onSubmit();
             }
-            
+
             setTimeout(() => {
-                 onClose()
-            }, 500); 
+                onClose()
+            }, 500);
 
         } catch (error) {
             const message = error.response?.data?.message || `Failed to ${isUpdateMode ? 'update' : 'register'}.`;
@@ -98,12 +101,10 @@ export default function AddDonorModal({ isOpen, onClose, onSubmit, donorToEdit }
                         <X className="h-6 w-6" />
                     </button>
                 </div>
-                
-                {/* Status Message Display */}
+
                 {statusMessage.message && (
-                    <div className={`mb-4 p-3 rounded-lg text-sm ${
-                        statusMessage.type === 'error' ? 'bg-red-100 text-red-700 border border-red-400' : 'bg-green-100 text-green-700 border border-green-400'
-                    }`}>
+                    <div className={`mb-4 p-3 rounded-lg text-sm ${statusMessage.type === 'error' ? 'bg-red-100 text-red-700 border border-red-400' : 'bg-green-100 text-green-700 border border-green-400'
+                        }`}>
                         {statusMessage.message}
                     </div>
                 )}
