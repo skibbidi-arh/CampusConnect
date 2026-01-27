@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { useRecieverContext } from '../../../context/RecieverContext'
 import { useDonorContext } from '../../../context/DonorContext'
 import { AuthContext } from '../../../context/AuthContext'
+import Loading from '../../../components/Loading'
 import axios from 'axios'
 
 export default function BloodRequests() {
@@ -119,7 +120,7 @@ export default function BloodRequests() {
     };
 
     if (recieverLoading) {
-        return <div className="text-center py-12 text-lg font-semibold text-gray-700">Loading blood requests...</div>
+        return <Loading text="Loading blood requests" />
     }
 
     if (recieverError) {

@@ -12,12 +12,7 @@ import Home from './pages/Anonymous/pages/Home'
 
 // 1. FIXED Layout component with a container
 const AnonymousLayout = () => (
-  <div className="flex flex-col min-h-screen bg-white text-black"> 
-    <Navbar />
-    <main className="flex-grow container mx-auto px-4 py-8">
-      <Outlet />
-    </main>
-  </div>
+  <Outlet />
 );
 
 function App() {

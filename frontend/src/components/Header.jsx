@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext'
 import { CgProfile } from "react-icons/cg";
 import { useEffect } from 'react';
 
-export default function Header({ onMenuToggle, showMenuButton = true,handlelogout }) {
+export default function Header({ onMenuToggle, showMenuButton = true, handlelogout, onProfileClick }) {
   const {User} = AuthContext()
   const navigate = useNavigate()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
@@ -14,7 +14,7 @@ export default function Header({ onMenuToggle, showMenuButton = true,handlelogou
 
   return (
     <nav className="sticky top-0 z-50 bg-gradient-to-r from-[#e50914] via-[#b00020] to-[#8b0018] shadow-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <div className="flex w-full items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4">
           {showMenuButton && (
             <button
@@ -49,25 +49,34 @@ export default function Header({ onMenuToggle, showMenuButton = true,handlelogou
           
           {/* User Profile */}
           <div className="relative">
-            <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center gap-3 rounded-lg p-1 transition-all hover:bg-white/10"
-            >
+            <div className="flex items-center gap-3">
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-semibold text-white">{User?.user_name || User?.user?.user_name}</p>
-                <p className="text-xs text-white/80">IUT Student</p>
               </div>
-              <div className="h-10 w-10 overflow-hidden rounded-full  border-white bg-white/20 backdrop-blur-sm">
-                {!User?.image?(<CgProfile  className='w-full h-full'/>) : (<img src={ User?.image} />)}
-              </div>
-            </button>
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="h-10 w-10 overflow-hidden rounded-full border-2 border-white bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-sm transition-all hover:scale-110 hover:shadow-lg"
+              >
+                {!User?.image ? (
+                  <svg className="h-full w-full p-1.5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  </svg>
+                ) : (
+                  <img src={User?.image} alt="Profile" className="h-full w-full object-cover" />
+                )}
+              </button>
+            </div>
 
             {/* Profile Dropdown */}
             {showProfileMenu && (
               <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white shadow-2xl animate-[fade-up_200ms_ease-out]">
                 <button
                   onClick={() => {
-                    navigate('/profile')
+                    if (onProfileClick) {
+                      onProfileClick()
+                    } else {
+                      navigate('/profile')
+                    }
                     setShowProfileMenu(false)
                   }}
                   className="flex w-full items-center gap-3 rounded-t-xl px-4 py-3 text-left text-gray-700 transition-colors hover:bg-gray-100"

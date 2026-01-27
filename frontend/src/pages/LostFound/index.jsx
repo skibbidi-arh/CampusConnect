@@ -6,6 +6,7 @@ import Footer from '../../components/Footer'
 import GoBackButton from '../../components/GoBackButton'
 import ItemCard from './components/ItemCard'
 import PostItemForm from './components/PostItemForm'
+import Loading from '../../components/Loading'
 import { AuthContext } from '../../context/AuthContext'
 
 export default function LostFound() {
@@ -121,9 +122,7 @@ export default function LostFound() {
               </div>
 
               {isLoading ? (
-                <div className="flex justify-center p-12">
-                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#e50914] border-t-transparent"></div>
-                </div>
+                <Loading text="Loading items" />
               ) : (
                 <div className="space-y-6">
                   {activeTab === 'all' && (

@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Users, Droplet, Phone, MapPin, Clock, ToggleLeft, ToggleRight, Filter, Edit,LoaderIcon } from 'lucide-react'
 import AddDonorModal from './modals/AddDonorModal'
 import RequestBloodModal from './modals/RequestBloodModal'
+import Loading from '../../../components/Loading'
 import { AuthContext } from '../../../context/AuthContext'
 import { useDonorContext } from '../../../context/DonorContext'
 
@@ -89,7 +90,7 @@ export default function BloodBank() {
     };
 
     if (donorLoading && !donors.length) {
-        return <div className="text-center py-10 text-lg font-semibold">Loading Donor Data...</div>;
+        return <Loading text="Loading donor data" />;
     }
     if (donorError) {
         return <div className="text-center py-10 text-red-600 font-semibold">Error: {donorError}</div>;

@@ -4,6 +4,7 @@ import Footer from '../../components/Footer'
 import GoBackButton from '../../components/GoBackButton'
 import RoommateCard from './components/RoommateCard'
 import PostRoommateForm from './components/PostRoommateForm'
+import Loading from '../../components/Loading'
 import { AuthContext } from '../../context/AuthContext' // Corrected import
 import axios from 'axios'
 
@@ -143,6 +144,16 @@ export default function RoommateWanted() {
       alert(error.response?.data?.message || "Could not delete ad");
     }
   };
+
+  if (isLoadingListings) {
+    return (
+      <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+        <Header />
+        <Loading text="Loading listings" fullScreen={true} />
+        <Footer />
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100">
