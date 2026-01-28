@@ -212,7 +212,7 @@ export default function BloodBank() {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <Phone className="h-4 w-4" />
-                                            <span>{isCurrentUser ? donor.phone_number : 'Contact visible via button'}</span>
+                                            <span>{donor.phone_number}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <Clock className="h-4 w-4" />
@@ -223,7 +223,6 @@ export default function BloodBank() {
                                     {/* Action Button */}
                                     {isCurrentUser ? (
                                         <div className="flex gap-2">
-                                            {/* Update button - only on the current user's card */}
                                             <button
                                                 onClick={handleUpdateClick}
                                                 className="mt-4 w-1/3 rounded-full py-2 text-sm font-semibold text-white transition hover:shadow-lg flex items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600"
@@ -244,7 +243,7 @@ export default function BloodBank() {
                                         </div>
                                     ) : (
                                         donor.isActive && (
-                                            <button className="mt-4 w-full rounded-full bg-gradient-to-r from-[#e50914] to-[#b00020] py-2 text-sm font-semibold text-white transition hover:shadow-lg">
+                                            <button onClick={()=>{}} className="mt-4 w-full rounded-full bg-gradient-to-r from-[#e50914] to-[#b00020] py-2 text-sm font-semibold text-white transition hover:shadow-lg">
                                                 Contact Donor
                                             </button>
                                         )

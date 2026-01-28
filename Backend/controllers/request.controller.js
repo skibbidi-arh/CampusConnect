@@ -2,10 +2,8 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 exports.createBloodRequest = async (req, res) => {
-    // 1. Get User ID from authentication middleware
     const requesterId = req.verifiedUser.user_id; 
     
-    // 2. Data received from the frontend form (RequestModal)
     const { blood_group, location, deadline } = req.body; 
     console.log(req.body)
 
@@ -17,15 +15,21 @@ exports.createBloodRequest = async (req, res) => {
     }
 
     try {
-        const deadlineDate = new Date(deadline);
-        const now = new Date();
-            console.log(deadlineDate, now)
-        // Server-side validation for future date (mirroring frontend check)
-        if (isNaN(deadlineDate.getTime()) || deadlineDate <= now) {
-            return res.status(400).json({
-                message: 'Invalid deadline. The requested time must be a valid date in the future.'
-            });
-        }
+       const deadlineDate = new Date(deadline);
+const now = new Date();
+
+// Normalize both dates to midnight
+deadlineDate.setHours(0, 0, 0, 0);
+now.setHours(0, 0, 0, 0);
+
+console.log('Normalized Deadline:', deadlineDate);
+console.log('Normalized Today:', now);
+
+if (isNaN(deadlineDate.getTime()) || deadlineDate < now) {
+    return res.status(400).json({
+        message: 'Invalid deadline. The requested time must be today or a date in the future.'
+    });
+}
         
         // 4. Create the BloodRequest record
         const newRequest = await prisma.bloodRequest.create({

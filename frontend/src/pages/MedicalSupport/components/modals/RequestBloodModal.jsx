@@ -23,48 +23,66 @@ export default function RequestBloodModal({ isOpen, onClose }) {
 
     if (!isOpen) return null
 
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData((prev) => ({
+const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    setFormData((prev) => {
+        const updated = {
             ...prev,
             [name]: type === 'checkbox' ? checked : value,
-        }));
-        setSubmissionError(null);
-    };
+        };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setSubmissionError(null);
-        setIsSubmitting(true);
-
-        if (!formData.blood_group || !formData.phone_number || !formData.location) {
-            setSubmissionError('Please fill out the blood group, mobile number, and location.');
-            setIsSubmitting(false);
-            return;
+        if (name === 'is_emergency' && checked) {
+            updated.deadline = new Date().toISOString().split('T')[0];
         }
 
-        try {
-            await createReciever(formData);
-            
-            toast.success('Blood request submitted successfully! Donors will be notified.');
-            
-            setFormData({
-                blood_group: '',
-                phone_number: initialPhoneNumber,
-                deadline: '',
-                location: '',
-                is_emergency: false,
-            });
-            
-            onClose();
+        return updated;
+    });
 
-        } catch (error) {
-            setSubmissionError(error.message || 'An error occurred during submission.');
-            toast.error(error.message || 'Failed to submit blood request. Please try again.');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+    setSubmissionError(null);
+};
+
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmissionError(null);
+    setIsSubmitting(true);
+
+    const bdPhoneRegex = /^(?:\+88|88)?(01[3-9]\d{8})$/;
+
+    // Updated check: Date is optional for normal requests but required for Emergency 
+    // (Though technically good to always have it)
+    if (!formData.blood_group || !formData.phone_number || !formData.location) {
+        setSubmissionError('Please fill out the blood group, mobile number, and location.');
+        setIsSubmitting(false);
+        return;
+    }
+
+    if (!bdPhoneRegex.test(formData.phone_number)) {
+        setSubmissionError('Please enter a valid Bangladeshi mobile number (e.g., 01712345678).');
+        setIsSubmitting(false);
+        return;
+    }
+
+    try {
+        await createReciever(formData);
+        toast.success('Blood request submitted successfully!');
+        
+        setFormData({
+            blood_group: '',
+            phone_number: initialPhoneNumber,
+            deadline: '',
+            location: '',
+            is_emergency: false,
+        });
+        
+        onClose();
+    } catch (error) {
+        setSubmissionError(error.message || 'An error occurred during submission.');
+        toast.error('Failed to submit blood request.');
+    } finally {
+        setIsSubmitting(false);
+    }
+};
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

@@ -6,7 +6,6 @@ export default function ItemCard({ item, index, onDelete, showMarkAsFound = fals
   const [copiedFacebook, setCopiedFacebook] = useState(false)
   const [showImageModal, setShowImageModal] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
-  console.log(item)
     const facebookValue =
         item.facebookId ??
         item.facebook_id ??
@@ -18,6 +17,7 @@ export default function ItemCard({ item, index, onDelete, showMarkAsFound = fals
 
     const handleContact = () => {
     setShowContact(!showContact)
+    console.log(item.item_id)
   }
 
   const handleDelete = () => {
@@ -149,9 +149,8 @@ export default function ItemCard({ item, index, onDelete, showMarkAsFound = fals
                 </button>
 
                 {/* Contact Information Dropdown */}
-                {showContact && (
-                  <div className="rounded-lg border-2 border-gray-200 bg-gray-50 p-3 space-y-2.5 animate-[slide-down_300ms_ease-out]">
-                    {/* Phone Number */}
+                {showContact  && (
+                  <div className="rounded-lg border-2 border-gray-200 bg-gray-50 p-3 space-y-2.5 animate-[slide-down_300ms_ease-in-out]">
                     {item.phone_number && (
                       <div className="flex items-start gap-2.5">
                         <div className="rounded-lg bg-white p-1.5 shadow-sm">

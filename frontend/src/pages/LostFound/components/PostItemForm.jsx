@@ -198,7 +198,7 @@ export default function PostItemForm({ onSubmit, User }) {
               type="file"
               accept="image/*"
               onChange={handleFileInput}
-              className="absolute inset-0 z-10 cursor-pointer opacity-0"
+              className="absolute placeholder-black inset-0 z-10 cursor-pointer opacity-0"
               aria-label="Upload image"
             />
 
