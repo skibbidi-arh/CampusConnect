@@ -168,7 +168,7 @@ export default function BloodRequests() {
                     <select
                         value={selectedBloodGroup}
                         onChange={(e) => setSelectedBloodGroup(e.target.value)}
-                        className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
+                        className="rounded-lg text-black bg-gray-300 border border-gray-300 px-3 py-1.5 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
                     >
                         {bloodGroups.map(group => (
                             <option key={group} value={group}>
@@ -182,14 +182,14 @@ export default function BloodRequests() {
                         placeholder="Location..."
                         value={searchLocation}
                         onChange={(e) => setSearchLocation(e.target.value)}
-                        className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 w-32 sm:w-auto"
+                        className="rounded-lg text-black bg-gray-300 border border-gray-300 px-3 py-1.5 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 w-32 sm:w-auto"
                     />
 
                     <input
                         type="date"
                         value={minDueDate}
                         onChange={(e) => setMinDueDate(e.target.value)}
-                        className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 w-32 sm:w-auto"
+                        className="rounded-lg border text-black bg-gray-300 px-3 py-1.5 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 w-32 sm:w-auto"
                         title="Filter by Minimum Due Date"
                     />
 
@@ -199,12 +199,18 @@ export default function BloodRequests() {
                             id="emergencyFilter"
                             checked={showEmergencyOnly}
                             onChange={(e) => setShowEmergencyOnly(e.target.checked)}
-                            className="h-4 w-4 rounded border-gray-300 text-[#e50914] focus:ring-2 focus:ring-[#e50914]/20"
+                            className="h-4 w-4 rounded border-gray-400 bg-gray-300 text-black
+                   focus:ring-2 focus:ring-gray-400
+                   checked:bg-gray-300 checked:text-black"
                         />
-                        <label htmlFor="emergencyFilter" className="cursor-pointer text-sm font-medium text-gray-700">
+                        <label
+                            htmlFor="emergencyFilter"
+                            className="cursor-pointer text-sm font-medium text-gray-700"
+                        >
                             Emergency
                         </label>
                     </div>
+
                 </div>
             </div>
 

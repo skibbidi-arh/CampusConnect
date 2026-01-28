@@ -5,8 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="40815e79-6bdc-4f1d-a563-2a8a5ee44f50" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/frontend/src/pages/LostFound/components/ItemCard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/LostFound/components/ItemCard.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/pages/LostFound/components/PostItemForm.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/LostFound/components/PostItemForm.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/MedicalSupport/components/BloodBank.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/MedicalSupport/components/BloodBank.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/MedicalSupport/components/BloodRequests.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/MedicalSupport/components/BloodRequests.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/RoommateWanted/components/PostRoommateForm.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/RoommateWanted/components/PostRoommateForm.jsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,24 +33,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "Chishti",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/arham/OneDrive/Desktop/dp/CampusConnect",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "ts.external.directory.path": "C:\\Users\\arham\\OneDrive\\Desktop\\dp\\CampusConnect\\Backend\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Chishti&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/arham/OneDrive/Desktop/dp/CampusConnect&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\arham\\OneDrive\\Desktop\\dp\\CampusConnect\\Backend\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -68,7 +70,8 @@
       <workItem from="1769514533354" duration="193000" />
       <workItem from="1769514748938" duration="156000" />
       <workItem from="1769517489880" duration="802000" />
-      <workItem from="1769572057427" duration="1518000" />
+      <workItem from="1769572057427" duration="2264000" />
+      <workItem from="1769574478379" duration="1974000" />
     </task>
     <servers />
   </component>

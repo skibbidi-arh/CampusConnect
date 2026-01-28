@@ -145,7 +145,7 @@ export default function BloodBank() {
                             placeholder="Search city or area..."
                             value={searchLocation}
                             onChange={(e) => setSearchLocation(e.target.value)}
-                            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
+                            className="w-full rounded-lg text-black bg-gray-300 border border-gray-300 px-4 py-2 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
                         />
                     </div>
                     
@@ -154,7 +154,7 @@ export default function BloodBank() {
                         <select
                             value={selectedBloodGroup}
                             onChange={(e) => setSelectedBloodGroup(e.target.value)}
-                            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
+                            className="w-full rounded-lg text-black bg-gray-300 border border-gray-300 px-4 py-2 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
                         >
                             {bloodGroups.map(group => (
                                 <option key={group} value={group}>

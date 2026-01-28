@@ -178,28 +178,29 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
             value={formData.area}
             onChange={handleChange}
             placeholder="e.g., Board Bazar, Rajendrapur"
-            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.area ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
+            className={`w-full rounded-lg text-black bg-gray-300 border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.area ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
               }`}
           />
           {errors.area && <p className="mt-1 text-xs text-red-600">{errors.area}</p>}
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-700">
-            Full Address <span className="text-[#e50914]">*</span>
-          </label>
-          <textarea
-            name="fullAddress"
-            value={formData.fullAddress}
-            onChange={handleChange}
-            placeholder="House/Flat number, Road, detailed location"
-            rows="2"
-            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.fullAddress ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
-              }`}
-          />
-          {errors.fullAddress && <p className="mt-1 text-xs text-red-600">{errors.fullAddress}</p>}
-        </div>
 
+
+          <div>
+              <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  Full Address <span className="text-[#e50914]">*</span>
+              </label>
+              <textarea
+                  name="fullAddress"
+                  value={formData.fullAddress}
+                  onChange={handleChange}
+                  placeholder="House/Flat number, Road, detailed location"
+                  rows="2"
+                  className={`w-full rounded-lg text-black bg-gray-300 border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.fullAddress ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
+                  }`}
+              />
+              {errors.fullAddress && <p className="mt-1 text-xs text-red-600">{errors.fullAddress}</p>}
+          </div>
         <div>
           <label className="mb-2 block text-sm font-semibold text-gray-700">
             Floor Number <span className="text-[#e50914]">*</span>
@@ -210,7 +211,7 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
             value={formData.floor}
             onChange={handleChange}
             placeholder="e.g., 2nd Floor, Ground Floor"
-            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.floor ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
+            className={`w-full rounded-lg text-black bg-gray-300 border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.floor ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
               }`}
           />
           {errors.floor && <p className="mt-1 text-xs text-red-600">{errors.floor}</p>}
@@ -258,14 +259,14 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
                         value={student.studentId}
                         onChange={(e) => handleStudentInfoChange(index, 'studentId', e.target.value)}
                         placeholder="Student ID"
-                        className="w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
+                        className="w-full rounded-lg text-black bg-gray-300 border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
                       />
                       <input
                         type="text"
                         value={student.batch}
                         onChange={(e) => handleStudentInfoChange(index, 'batch', e.target.value)}
                         placeholder="Batch (e.g., 2020)"
-                        className="w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
+                        className="w-full rounded-lg text-black bg-gray-300 border-2 border-gray-200 px-3 py-2 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
                       />
                     </div>
                   </div>
@@ -296,7 +297,7 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
             value={formData.rent}
             onChange={handleChange}
             placeholder="Enter monthly rent"
-            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.rent ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
+            className={`w-full rounded-lg text-black bg-gray-300 border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.rent ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
               }`}
           />
           {errors.rent && <p className="mt-1 text-xs text-red-600">{errors.rent}</p>}
@@ -312,7 +313,7 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
             onChange={handleChange}
             placeholder="e.g., WiFi, Washing Machine, Geyser, Meal Service, Parking"
             rows="3"
-            className="w-full rounded-lg border-2 border-gray-200 px-4 py-2.5 text-sm transition-colors focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
+            className="w-full rounded-lg text-black bg-gray-300 border-2 border-gray-200 px-4 py-2.5 text-sm transition-colors focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
           />
         </div>
 
@@ -363,7 +364,7 @@ export default function PostRoommateForm({ onSubmit, onCancel }) {
             onChange={handleChange}
             placeholder="01XXXXXXXXX"
             maxLength="11"
-            className={`w-full rounded-lg border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.phone_number ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
+            className={`w-full rounded-lg text-black bg-gray-300 border-2 px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]/20 ${errors.phone_number ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#e50914]'
               }`}
           />
           {errors.phone_number && <p className="mt-1 text-xs text-red-600">{errors.phone_number}</p>}
