@@ -255,7 +255,7 @@ export default function PostItemForm({ onSubmit, User }) {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className={`w-full rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.name ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
+            className={`w-full rounded-xl text-black border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.name ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020] bg-gray-300'
               }`}
             placeholder="e.g., Black Leather Wallet"
           />
@@ -282,7 +282,7 @@ export default function PostItemForm({ onSubmit, User }) {
             value={formData.description}
             onChange={handleChange}
             rows={4}
-            className={`w-full resize-none rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.description ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
+            className={`w-full bg-gray-300 text-black resize-none rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.description ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
               }`}
             placeholder="Provide details about the item..."
           />
@@ -308,7 +308,7 @@ export default function PostItemForm({ onSubmit, User }) {
             value={formData.date}
             onChange={handleChange}
             max={new Date().toISOString().split('T')[0]}
-            className={`w-full rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.date ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
+            className={`w-full rounded-xl border-2 text-black bg-gray-300 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.date ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
               }`}
           />
           {errors.date && (
@@ -332,7 +332,7 @@ export default function PostItemForm({ onSubmit, User }) {
             name="location"
             value={formData.location}
             onChange={handleChange}
-            className={`w-full rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.location ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
+            className={`w-full rounded-xl border-2 text-black  bg-gray-300 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.location ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
               }`}
             placeholder="e.g., Library 2nd Floor, Near Cafeteria"
           />
@@ -357,7 +357,7 @@ export default function PostItemForm({ onSubmit, User }) {
             name="phone_number"
             value={formData.phone_number}
             onChange={handleChange}
-            className={`w-full rounded-xl border-2 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.phone_number ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
+            className={`w-full rounded-xl text-black border-2 bg-gray-300 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] ${errors.phone_number ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[#b00020]'
               }`}
             placeholder="e.g., 01712345678"
           />
@@ -372,20 +372,20 @@ export default function PostItemForm({ onSubmit, User }) {
         </div>
 
         {/* Facebook ID */}
-        <div>
-          <label htmlFor="facebookId" className="mb-2 block text-sm font-semibold text-gray-700">
-            Facebook ID <span className="text-gray-500"></span>
-          </label>
-          <input
-            type="text"
-            id="facebookId"
-            name="facebookId"
-            value={formData.facebookId}
-            onChange={handleChange}
-            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] focus:border-[#b00020]"
-            placeholder="e.g., facebook.com/yourprofile or your.name"
-          />
-        </div>
+        {/*<div>*/}
+        {/*  <label htmlFor="facebookId" className="mb-2 block text-sm font-semibold text-gray-700">*/}
+        {/*    Facebook ID <span className="text-gray-500"></span>*/}
+        {/*  </label>*/}
+        {/*  <input*/}
+        {/*    type="text"*/}
+        {/*    id="facebookId"*/}
+        {/*    name="facebookId"*/}
+        {/*    value={formData.facebookId}*/}
+        {/*    onChange={handleChange}*/}
+        {/*    className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#b00020] focus:border-[#b00020]"*/}
+        {/*    placeholder="e.g., facebook.com/yourprofile or your.name"*/}
+        {/*  />*/}
+        {/*</div>*/}
 
         {/* Submit Button */}
         <button

@@ -7,8 +7,16 @@ export default function ItemCard({ item, index, onDelete, showMarkAsFound = fals
   const [showImageModal, setShowImageModal] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   console.log(item)
+    const facebookValue =
+        item.facebookId ??
+        item.facebook_id ??
+        item.facebook ??
+        item.facebook_link ??
+        item.facebookUrl ??
+        item.facebook_url
 
-  const handleContact = () => {
+
+    const handleContact = () => {
     setShowContact(!showContact)
   }
 
