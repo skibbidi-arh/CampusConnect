@@ -6,7 +6,6 @@ import MedicalSupport from './pages/MedicalSupport/index'
 import LostFound from './pages/LostFound/index'
 import RoommateWanted from './pages/RoommateWanted/index'
 import Navbar from './pages/Anonymous/components/Navbar'
-import SubmitFeedback from './pages/Anonymous/pages/SubmitFeedback'
 import CategoryFeedback from './pages/Anonymous/pages/CategoryFeedback'
 import Home from './pages/Anonymous/pages/Home'
 
@@ -60,7 +59,6 @@ function App() {
         {/* 2. Routes WITH Navbar */}
         <Route element={<AnonymousLayout />}>
           <Route path="/home" element={<Home />} />
-          <Route path="/submit" element={<SubmitFeedback />} />
           <Route path="/category/:category" element={<CategoryFeedback />} />
         </Route>
       </Routes>

@@ -20,6 +20,31 @@ const CATEGORIES = [
     "Sports"
 ];
 
+const commentSchema = new mongoose.Schema(
+    {
+        author: {
+            type: String,
+            default: "Anonymous",
+            trim: true,
+            maxlength: 50
+        },
+        message: {
+            type: String,
+            required: true,
+            trim: true,
+            minlength: 1,
+            maxlength: 500
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    },
+    {
+        _id: true
+    }
+);
+
 const feedbackSchema = new mongoose.Schema(
     {
         category: {
@@ -37,6 +62,10 @@ const feedbackSchema = new mongoose.Schema(
             required: true,
             trim: true,
             minlength: 5
+        },
+        comments: {
+            type: [commentSchema],
+            default: []
         }
     },
     {

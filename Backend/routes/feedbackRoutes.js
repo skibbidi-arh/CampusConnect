@@ -3,12 +3,18 @@ const router = express.Router();
 const {
     createFeedback,
     getAllFeedback,
-    getFeedbackByCategory
+    getFeedbackByCategory,
+    getFeedbackById,
+    addComment,
+    deleteComment
 } = require("../controllers/feedbackController");
-const { validateFeedback } = require("../middleware/sanitize");
+const { validateFeedback, validateComment } = require("../middleware/sanitize");
 
 router.post("/", validateFeedback, createFeedback);
 router.get("/", getAllFeedback);
-router.get("/:category", getFeedbackByCategory);
+router.get("/category/:category", getFeedbackByCategory);
+router.get("/:id", getFeedbackById);
+router.post("/:id/comments", validateComment, addComment);
+router.delete("/:feedbackId/comments/:commentId", deleteComment);
 
 module.exports = router;

@@ -1,71 +1,199 @@
 import { formatDate } from "../utils/formatDate";
-import { MoreHorizontal } from "lucide-react";
+import { MessageCircle, Send, MoreVertical } from "lucide-react";
+import { useState } from "react";
+import { addComment, deleteComment } from "../api/feedbackApi";
+import toast from "react-hot-toast";
 
-export default function FeedbackItem({ feedback }) {
+export default function FeedbackItem({ feedback, onUpdate }) {
+    const [showComments, setShowComments] = useState(false);
+    const [commentText, setCommentText] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [localFeedback, setLocalFeedback] = useState(feedback);
+    const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+
+    const handleAddComment = async (e) => {
+        e.preventDefault();
+        if (!commentText.trim()) return;
+
+        setIsSubmitting(true);
+        try {
+            const response = await addComment(localFeedback._id, {
+                message: commentText
+            });
+            setLocalFeedback(response.data);
+            setCommentText("");
+            if (onUpdate) onUpdate(response.data);
+        } catch (error) {
+            toast.error("Failed to add comment");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteComment = async (commentId) => {
+        try {
+            const response = await deleteComment(localFeedback._id, commentId);
+            setLocalFeedback(response.data.feedback);
+            if (onUpdate) onUpdate(response.data.feedback);
+            setDeleteConfirmId(null);
+            toast.success("Comment deleted successfully");
+        } catch (error) {
+            toast.error("Failed to delete comment");
+        }
+    };
+
     return (
-        <div className="group relative bg-white border-2 border-red-50 rounded-2xl p-8 transition-all duration-300 hover:border-red-600 hover:shadow-2xl hover:shadow-red-100 hover:-translate-y-1 h-full flex flex-col">
-
-            {/* Action Bar */}
-            <div className="flex justify-end items-start mb-4">
-                <button className="text-red-200 hover:text-red-600 transition-colors">
-                    <MoreHorizontal size={20} />
+        <div className="w-full">
+            {/* Post Header */}
+            <div className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold shadow-sm">
+                        {localFeedback.title?.charAt(0)?.toUpperCase() || "A"}
+                    </div>
+                    <div>
+                        <div className="font-semibold text-gray-900">Anonymous User</div>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <span>{formatDate(localFeedback.createdAt)}</span>
+                            <span>•</span>
+                            <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded-full font-medium">
+                                {localFeedback.category}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <MoreVertical size={20} className="text-gray-600" />
                 </button>
             </div>
 
-            {/* Data Sections */}
-            <div className="flex-1 space-y-8">
-
-                {/* 1. SUBJECT SECTION */}
-                <div className="relative pl-6 border-l-2 border-red-600">
-                    <span className="block text-[11px] font-black uppercase tracking-widest text-red-600 mb-1">
-                        SUBJECT:
-                    </span>
-                    <h4 className="text-black font-extrabold text-xl leading-tight group-hover:text-red-700 transition-colors">
-                        {feedback.title || "No Title Provided"}
-                    </h4>
-                </div>
-
-                {/* 2. MESSAGE SECTION */}
-                <div className="bg-red-50/20 p-5 rounded-xl border border-red-100/50">
-                    <span className="block text-[11px] font-black uppercase tracking-widest text-red-600 mb-2">
-                        FEEDBACK DETAIL:
-                    </span>
-                    <p className="text-black leading-relaxed text-sm font-medium italic">
-                        "{feedback.message}"
-                    </p>
-                </div>
-
+            {/* Post Content */}
+            <div className="px-4 pb-3">
+                <h3 className="font-semibold text-lg text-gray-900 mb-2">
+                    {localFeedback.title}
+                </h3>
+                <p className="text-gray-700 text-[15px] leading-relaxed whitespace-pre-wrap">
+                    {localFeedback.message}
+                </p>
             </div>
 
-            {/* 3. FOOTER SECTION */}
-            <div className="mt-10 pt-6 border-t-2 border-red-50 flex items-center justify-between">
+            {/* Action Buttons */}
+            <div className="px-4 py-2 border-t border-gray-200">
+                <button 
+                    onClick={() => setShowComments(!showComments)}
+                    className="w-full flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg transition-colors text-gray-600 font-medium"
+                >
+                    <MessageCircle size={18} />
+                    <span>{localFeedback.comments?.length || 0} {localFeedback.comments?.length === 1 ? 'Comment' : 'Comments'}</span>
+                </button>
+            </div>
 
-                {/* Author Label & Value */}
-                <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-1">
-                        AUTHOR:
-                    </span>
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white text-xs font-black shadow-md">
-                            {feedback.title?.charAt(0) || "U"}
+            {/* Comments Section */}
+            {showComments && (
+                <div className="border-t border-gray-200 bg-gray-50">
+                    {/* Comments List */}
+                    {localFeedback.comments && localFeedback.comments.length > 0 && (
+                        <div className="px-4 py-3 space-y-3 max-h-96 overflow-y-auto">
+                            {localFeedback.comments.map((comment) => (
+                                <div key={comment._id} className="flex gap-2">
+                                    <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                                        {comment.author?.charAt(0)?.toUpperCase() || "A"}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="bg-gray-100 rounded-2xl px-3 py-2 inline-block max-w-full">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="font-semibold text-sm text-gray-900">
+                                                    {comment.author || "Anonymous"}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-gray-800 break-words">
+                                                {comment.message}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-3 px-3 mt-1 text-xs text-gray-500">
+                                            <span>{formatDate(comment.createdAt)}</span>
+                                            <button
+                                                onClick={() => setDeleteConfirmId(comment._id)}
+                                                className="hover:underline font-medium text-red-600"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                        <span className="text-sm font-bold text-black uppercase tracking-tight">
-                            Anonymous
-                        </span>
+                    )}
+
+                    {/* Add Comment Form */}
+                    <div className="px-4 py-3 border-t border-gray-200 bg-white">
+                        <form onSubmit={handleAddComment} className="flex gap-2">
+                            <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                                A
+                            </div>
+                            <div className="flex-1 flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Write a comment..."
+                                    value={commentText}
+                                    onChange={(e) => setCommentText(e.target.value)}
+                                    maxLength={500}
+                                    required
+                                    className="flex-1 px-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:bg-gray-200 text-sm transition-colors"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting || !commentText.trim()}
+                                    className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white rounded-full font-medium transition-colors flex items-center gap-1.5 text-sm disabled:cursor-not-allowed"
+                                >
+                                    <Send size={16} />
+                                    {isSubmitting ? "..." : "Send"}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
+            )}
 
-                {/* Date Label & Value */}
-                <div className="flex flex-col items-end">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-1">
-                        SUBMITTED ON:
-                    </span>
-                    <span className="text-xs font-black text-red-600 bg-red-50 px-3 py-1 rounded-md border border-red-100">
-                        {formatDate(feedback.createdAt)}
-                    </span>
-                </div>
-
-            </div>
+            {/* Delete Confirmation Modal */}
+            {deleteConfirmId && (
+                <>
+                    <div 
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        onClick={() => setDeleteConfirmId(null)}
+                    >
+                        <div 
+                            className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="text-center mb-6">
+                                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Comment?</h3>
+                                <p className="text-sm text-gray-600">
+                                    Are you sure you want to delete this comment? This action cannot be undone.
+                                </p>
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setDeleteConfirmId(null)}
+                                    className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteComment(deleteConfirmId)}
+                                    className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

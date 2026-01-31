@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
-export default function Navbar() {
+export default function Navbar({ onOpenFeedbackModal }) {
     const DASHBOARD_URL = "http://localhost:5173/dashboard";
 
     return (
@@ -33,12 +33,12 @@ export default function Navbar() {
                 >
                     HOME
                 </Link>
-                <Link
-                    to="/submit"
-                    className="ml-[20px] text-white no-underline font-medium text-sm hover:underline"
+                <button
+                    onClick={onOpenFeedbackModal}
+                    className="ml-[20px] text-white no-underline font-medium text-sm hover:underline bg-transparent border-none cursor-pointer"
                 >
                     GIVE FEEDBACK
-                </Link>
+                </button>
             </div>
         </nav>
     );
