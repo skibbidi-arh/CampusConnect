@@ -1,8 +1,9 @@
 import { formatDate } from "../utils/formatDate";
-import { MessageCircle, Send, MoreVertical } from "lucide-react";
+import { MessageCircle, Send, MoreVertical, Heart } from "lucide-react";
 import { useState } from "react";
-import { addComment, deleteComment } from "../api/feedbackApi";
+import { addComment, deleteComment, likeFeedback, unlikeFeedback, likeComment, unlikeComment } from "../api/feedbackApi";
 import toast from "react-hot-toast";
+import { getAnonymousUserId } from "../utils/userUtils";
 
 export default function FeedbackItem({ feedback, onUpdate }) {
     const [showComments, setShowComments] = useState(false);
@@ -10,6 +11,7 @@ export default function FeedbackItem({ feedback, onUpdate }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [localFeedback, setLocalFeedback] = useState(feedback);
     const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+    const userId = getAnonymousUserId();
 
     const handleAddComment = async (e) => {
         e.preventDefault();
@@ -39,6 +41,43 @@ export default function FeedbackItem({ feedback, onUpdate }) {
             toast.success("Comment deleted successfully");
         } catch (error) {
             toast.error("Failed to delete comment");
+        }
+    };
+
+    const handleLikeFeedback = async () => {
+        try {
+            const isLiked = localFeedback.likes?.includes(userId);
+            
+            if (isLiked) {
+                const response = await unlikeFeedback(localFeedback._id, userId);
+                setLocalFeedback(response.data);
+                if (onUpdate) onUpdate(response.data);
+            } else {
+                const response = await likeFeedback(localFeedback._id, userId);
+                setLocalFeedback(response.data);
+                if (onUpdate) onUpdate(response.data);
+            }
+        } catch (error) {
+            toast.error("Failed to update like");
+        }
+    };
+
+    const handleLikeComment = async (commentId) => {
+        try {
+            const comment = localFeedback.comments.find(c => c._id === commentId);
+            const isLiked = comment?.likes?.includes(userId);
+            
+            if (isLiked) {
+                const response = await unlikeComment(localFeedback._id, commentId, userId);
+                setLocalFeedback(response.data);
+                if (onUpdate) onUpdate(response.data);
+            } else {
+                const response = await likeComment(localFeedback._id, commentId, userId);
+                setLocalFeedback(response.data);
+                if (onUpdate) onUpdate(response.data);
+            }
+        } catch (error) {
+            toast.error("Failed to update like");
         }
     };
 
@@ -78,13 +117,27 @@ export default function FeedbackItem({ feedback, onUpdate }) {
 
             {/* Action Buttons */}
             <div className="px-4 py-2 border-t border-gray-200">
-                <button 
-                    onClick={() => setShowComments(!showComments)}
-                    className="w-full flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg transition-colors text-gray-600 font-medium"
-                >
-                    <MessageCircle size={18} />
-                    <span>{localFeedback.comments?.length || 0} {localFeedback.comments?.length === 1 ? 'Comment' : 'Comments'}</span>
-                </button>
+                <div className="flex gap-2">
+                    <button 
+                        onClick={handleLikeFeedback}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg transition-colors font-medium ${
+                            localFeedback.likes?.includes(userId) ? 'text-red-600' : 'text-gray-600'
+                        }`}
+                    >
+                        <Heart 
+                            size={18} 
+                            fill={localFeedback.likes?.includes(userId) ? 'currentColor' : 'none'}
+                        />
+                        <span>{localFeedback.likes?.length || 0} {localFeedback.likes?.length === 1 ? 'Like' : 'Likes'}</span>
+                    </button>
+                    <button 
+                        onClick={() => setShowComments(!showComments)}
+                        className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg transition-colors text-gray-600 font-medium"
+                    >
+                        <MessageCircle size={18} />
+                        <span>{localFeedback.comments?.length || 0} {localFeedback.comments?.length === 1 ? 'Comment' : 'Comments'}</span>
+                    </button>
+                </div>
             </div>
 
             {/* Comments Section */}
@@ -111,6 +164,19 @@ export default function FeedbackItem({ feedback, onUpdate }) {
                                         </div>
                                         <div className="flex items-center gap-3 px-3 mt-1 text-xs text-gray-500">
                                             <span>{formatDate(comment.createdAt)}</span>
+                                            <button
+                                                onClick={() => handleLikeComment(comment._id)}
+                                                className={`flex items-center gap-1 hover:underline font-medium ${
+                                                    comment.likes?.includes(userId) ? 'text-red-600' : 'text-gray-600'
+                                                }`}
+                                            >
+                                                <Heart 
+                                                    size={12} 
+                                                    fill={comment.likes?.includes(userId) ? 'currentColor' : 'none'}
+                                                />
+                                                {comment.likes?.length > 0 && <span>{comment.likes.length}</span>}
+                                                {comment.likes?.length === 0 && <span>Like</span>}
+                                            </button>
                                             <button
                                                 onClick={() => setDeleteConfirmId(comment._id)}
                                                 className="hover:underline font-medium text-red-600"

@@ -20,3 +20,15 @@ export const addComment = (feedbackId, data) =>
 
 export const deleteComment = (feedbackId, commentId) =>
     axios.delete(`${API_BASE}/feedback/${feedbackId}/comments/${commentId}`);
+
+export const likeFeedback = (feedbackId, userId) =>
+    axios.post(`${API_BASE}/feedback/${feedbackId}/like`, { userId });
+
+export const unlikeFeedback = (feedbackId, userId) =>
+    axios.post(`${API_BASE}/feedback/${feedbackId}/unlike`, { userId });
+
+export const likeComment = (feedbackId, commentId, userId) =>
+    axios.post(`${API_BASE}/feedback/${feedbackId}/comments/${commentId}/like`, { userId });
+
+export const unlikeComment = (feedbackId, commentId, userId) =>
+    axios.post(`${API_BASE}/feedback/${feedbackId}/comments/${commentId}/unlike`, { userId });

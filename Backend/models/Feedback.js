@@ -35,6 +35,10 @@ const commentSchema = new mongoose.Schema(
             minlength: 1,
             maxlength: 500
         },
+        likes: {
+            type: [String],
+            default: []
+        },
         createdAt: {
             type: Date,
             default: Date.now
@@ -62,6 +66,10 @@ const feedbackSchema = new mongoose.Schema(
             required: true,
             trim: true,
             minlength: 5
+        },
+        likes: {
+            type: [String],
+            default: []
         },
         comments: {
             type: [commentSchema],
