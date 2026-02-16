@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import MedicalSupport from './pages/MedicalSupport/index'
 import LostFound from './pages/LostFound/index'
 import RoommateWanted from './pages/RoommateWanted/index'
+import ChatbotPage from './pages/Chatbot/ChatbotPage'
 import Navbar from './pages/Anonymous/components/Navbar'
 import CategoryFeedback from './pages/Anonymous/pages/CategoryFeedback'
 import Home from './pages/Anonymous/pages/Home'
@@ -48,7 +49,7 @@ function App() {
         <Route path="/calendar" element={<Dashboard />} />
         <Route path="/medical" element={<Dashboard />} />
         <Route path="/medical-support" element={<MedicalSupport />} />
-        <Route path="/chatbot" element={<Dashboard />} />
+        <Route path="/chatbot" element={<ChatbotPage />} />
         <Route path="/lost-found" element={<LostFound />} />
         <Route path="/feedback" element={<Dashboard />} />
         <Route path="/marketplace" element={<Dashboard />} />
