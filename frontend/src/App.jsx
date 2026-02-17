@@ -6,6 +6,8 @@ import MedicalSupport from './pages/MedicalSupport/index'
 import LostFound from './pages/LostFound/index'
 import RoommateWanted from './pages/RoommateWanted/index'
 import ChatbotPage from './pages/Chatbot/ChatbotPage'
+import Societies from './pages/Societies/index'
+import SocietyPage from './pages/Societies/SocietyPage'
 import Navbar from './pages/Anonymous/components/Navbar'
 import CategoryFeedback from './pages/Anonymous/pages/CategoryFeedback'
 import Home from './pages/Anonymous/pages/Home'
@@ -54,6 +56,8 @@ function App() {
         <Route path="/feedback" element={<Dashboard />} />
         <Route path="/marketplace" element={<Dashboard />} />
         <Route path="/accommodation" element={<RoommateWanted />} />
+        <Route path="/societies" element={<Societies />} />
+        <Route path="/societies/:id" element={<SocietyPage />} />
         <Route path="/profile" element={<Dashboard />} />
         <Route path="/settings" element={<Dashboard />} />
 

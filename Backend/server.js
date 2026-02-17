@@ -10,6 +10,8 @@ const requestRoutes = require('./routes/request.routes.js')
 const lostItemsRoutes = require('./routes/LostItem.routes.js')
 const roomBookingRoutes = require('./routes/roomBooking.routes.js')
 const feedBackRoutes = require('./routes/feedbackRoutes.js')
+const societyRoutes = require('./routes/society.routes.js')
+const eventRoutes = require('./routes/event.routes.js')
 const httpproxy = require('http-proxy')
 
 
@@ -33,7 +35,8 @@ app.use(cors(corsOptions));
 
 app.use(cookieParser());
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 
 app.use('/api/auth', authRoutes);
@@ -42,6 +45,8 @@ app.use('/api/request', requestRoutes)
 app.use('/api/lost-items', lostItemsRoutes)
 app.use('/api/bookRoom', roomBookingRoutes)
 app.use('/anonymous/api/feedback', feedBackRoutes)
+app.use('/api', societyRoutes)
+app.use('/api', eventRoutes)
 
 
 
