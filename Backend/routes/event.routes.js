@@ -11,6 +11,7 @@ router.delete('/events/:id', eventController.deleteEvent);
 
 // Registration routes
 router.post('/events/:id/register', eventController.registerForEvent);
+router.post('/events/:id/unregister', eventController.unregisterFromEvent);
 router.delete('/events/:id/register', eventController.unregisterFromEvent);
 
 module.exports = router;

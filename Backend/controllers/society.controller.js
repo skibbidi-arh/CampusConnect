@@ -43,11 +43,21 @@ exports.getSocietyById = async (req, res) => {
     const isFollowing = userEmail ? society.followers.includes(userEmail) : false;
     const isAdmin = userEmail ? society.admins.includes(userEmail) : false;
     
+    // Check if user has requested admin status
+    let adminRequestStatus = null;
+    if (userEmail && society.adminRequests) {
+      const request = society.adminRequests.find(req => req.userEmail === userEmail && req.status === 'pending');
+      if (request) {
+        adminRequestStatus = 'pending';
+      }
+    }
+    
     const societyData = {
       ...society.toObject(),
       memberCount: society.followers.length,
       isFollowing,
-      isAdmin
+      isAdmin,
+      adminRequestStatus
     };
     
     res.status(200).json({
@@ -72,7 +82,6 @@ exports.createSociety = async (req, res) => {
       logo,
       coverPhoto,
       description,
-      category,
       establishedYear,
       email,
       facebook,
@@ -93,7 +102,6 @@ exports.createSociety = async (req, res) => {
       logo,
       coverPhoto,
       description,
-      category,
       establishedYear,
       email,
       facebook,
@@ -227,11 +235,11 @@ exports.toggleFollow = async (req, res) => {
   }
 };
 
-// Join as admin
+// Request to join as admin
 exports.joinAsAdmin = async (req, res) => {
   try {
     const { id } = req.params;
-    const { userEmail } = req.body; // TODO: Get from auth token
+    const { userEmail, userName } = req.body; // TODO: Get from auth token
     
     if (!userEmail) {
       return res.status(400).json({
@@ -258,19 +266,42 @@ exports.joinAsAdmin = async (req, res) => {
       });
     }
     
-    society.admins.push(userEmail);
+    // Check if user already has a pending request
+    const existingRequest = society.adminRequests?.find(
+      req => req.userEmail === userEmail && req.status === 'pending'
+    );
+    
+    if (existingRequest) {
+      return res.status(400).json({
+        success: false,
+        message: 'You already have a pending admin request for this society'
+      });
+    }
+    
+    // Add admin request instead of directly adding to admins
+    if (!society.adminRequests) {
+      society.adminRequests = [];
+    }
+    
+    society.adminRequests.push({
+      userEmail,
+      userName: userName || userEmail.split('@')[0],
+      requestedAt: new Date(),
+      status: 'pending'
+    });
+    
     await society.save();
     
     res.status(200).json({
       success: true,
-      message: 'Successfully joined as admin',
-      isAdmin: true
+      message: 'Admin request sent successfully. Awaiting administrator approval.',
+      adminRequestStatus: 'pending'
     });
   } catch (error) {
-    console.error('Error joining as admin:', error);
+    console.error('Error requesting admin:', error);
     res.status(500).json({
       success: false,
-      message: 'Error joining as admin',
+      message: 'Error sending admin request',
       error: error.message
     });
   }
@@ -598,6 +629,83 @@ exports.deletePastEvent = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error deleting past event',
+      error: error.message
+    });
+  }
+};
+
+// Delete society (Administrator only)
+exports.deleteSociety = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const society = await Society.findById(id);
+    
+    if (!society) {
+      return res.status(404).json({
+        success: false,
+        message: 'Society not found'
+      });
+    }
+    
+    await Society.findByIdAndDelete(id);
+    
+    res.status(200).json({
+      success: true,
+      message: `Society "${society.name}" has been deleted successfully`
+    });
+  } catch (error) {
+    console.error('Error deleting society:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting society',
+      error: error.message
+    });
+  }
+};
+
+// Remove admin from society (Administrator only)
+exports.removeAdminFromSociety = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { adminEmail } = req.body;
+    
+    if (!adminEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'Admin email is required'
+      });
+    }
+    
+    const society = await Society.findById(id);
+    
+    if (!society) {
+      return res.status(404).json({
+        success: false,
+        message: 'Society not found'
+      });
+    }
+    
+    if (!society.admins.includes(adminEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: 'This user is not an admin of this society'
+      });
+    }
+    
+    society.admins = society.admins.filter(email => email !== adminEmail);
+    await society.save();
+    
+    res.status(200).json({
+      success: true,
+      message: `Admin removed from "${society.name}" successfully`,
+      society
+    });
+  } catch (error) {
+    console.error('Error removing admin:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error removing admin',
       error: error.message
     });
   }

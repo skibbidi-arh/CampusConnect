@@ -4,7 +4,7 @@ const Society = require('../models/Society');
 // Get all events
 exports.getAllEvents = async (req, res) => {
   try {
-    const { societyId, category, month, upcoming } = req.query;
+    const { societyId, category, month, upcoming, userEmail } = req.query;
     
     let query = {};
     
@@ -33,7 +33,7 @@ exports.getAllEvents = async (req, res) => {
     const eventsWithDetails = events.map(event => ({
       ...event.toObject(),
       currentParticipants: event.registrations.length,
-      isRegistered: false // TODO: Check against logged-in user
+      isRegistered: userEmail ? event.registrations.includes(userEmail) : false
     }));
     
     res.status(200).json({
@@ -54,6 +54,7 @@ exports.getAllEvents = async (req, res) => {
 exports.getEventById = async (req, res) => {
   try {
     const { id } = req.params;
+    const { userEmail } = req.query;
     const event = await Event.findById(id).select('-__v');
     
     if (!event) {
@@ -66,7 +67,7 @@ exports.getEventById = async (req, res) => {
     const eventData = {
       ...event.toObject(),
       currentParticipants: event.registrations.length,
-      isRegistered: false // TODO: Check against logged-in user
+      isRegistered: userEmail ? event.registrations.includes(userEmail) : false
     };
     
     res.status(200).json({
@@ -253,6 +254,14 @@ exports.registerForEvent = async (req, res) => {
       });
     }
     
+    // Check if registration is enabled (has a deadline or max participants)
+    if (!event.registrationDeadline && !event.maxParticipants) {
+      return res.status(400).json({
+        success: false,
+        message: 'Registration is not available for this event'
+      });
+    }
+    
     // Check if already registered
     if (event.registrations.includes(userEmail)) {
       return res.status(400).json({
@@ -261,16 +270,16 @@ exports.registerForEvent = async (req, res) => {
       });
     }
     
-    // Check if event is full
-    if (event.registrations.length >= event.maxParticipants) {
+    // Check if event is full (only if maxParticipants is defined)
+    if (event.maxParticipants && event.registrations.length >= event.maxParticipants) {
       return res.status(400).json({
         success: false,
         message: 'Event is fully booked'
       });
     }
     
-    // Check if registration deadline has passed
-    if (new Date() > new Date(event.registrationDeadline)) {
+    // Check if registration deadline has passed (only if deadline is set)
+    if (event.registrationDeadline && new Date() > new Date(event.registrationDeadline)) {
       return res.status(400).json({
         success: false,
         message: 'Registration deadline has passed'

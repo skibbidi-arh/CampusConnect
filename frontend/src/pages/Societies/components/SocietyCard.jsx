@@ -1,33 +1,39 @@
 export default function SocietyCard({ society, onClick }) {
+  const hasValidImage = (url) => {
+    return url && url.trim() !== '' && !url.includes('placeholder')
+  }
+
   return (
     <div
       onClick={onClick}
       className="group cursor-pointer overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
     >
       {/* Cover Photo */}
-      <div className="relative h-40 overflow-hidden bg-gradient-to-br from-[#e50914] to-[#b00020]">
-        <img
-          src={society.coverPhoto}
-          alt={society.name}
-          className="h-full w-full object-cover opacity-80 transition-transform duration-300 group-hover:scale-110"
-        />
-        {/* Category Badge */}
-        <div className="absolute right-3 top-3">
-          <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-gray-900 backdrop-blur-sm">
-            {society.category}
-          </span>
-        </div>
+      <div className="relative h-40 overflow-hidden bg-gray-100">
+        {hasValidImage(society.coverPhoto) ? (
+          <img
+            src={society.coverPhoto}
+            alt={society.name}
+            className="h-full w-full object-cover opacity-80 transition-transform duration-300 group-hover:scale-110"
+          />
+        ) : (
+          <div className="h-full w-full bg-gray-100"></div>
+        )}
       </div>
 
       {/* Society Logo - Overlapping */}
       <div className="relative px-6">
         <div className="absolute -top-10 left-6">
           <div className="h-20 w-20 overflow-hidden rounded-full border-4 border-white bg-white shadow-lg">
-            <img
-              src={society.logo}
-              alt={`${society.name} logo`}
-              className="h-full w-full object-cover"
-            />
+            {hasValidImage(society.logo) ? (
+              <img
+                src={society.logo}
+                alt={`${society.name} logo`}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="h-full w-full bg-white"></div>
+            )}
           </div>
         </div>
       </div>

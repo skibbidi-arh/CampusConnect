@@ -21,6 +21,7 @@ export default function SocietyPage() {
   const [society, setSociety] = useState(null)
   const [isFollowing, setIsFollowing] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [adminRequestStatus, setAdminRequestStatus] = useState(null)
   const [activeTab, setActiveTab] = useState('about')
   const [isLoading, setIsLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -43,7 +44,7 @@ export default function SocietyPage() {
     fetchSociety()
     fetchUpcomingEvents()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  }, [id, userEmail])
 
   const fetchSociety = async () => {
     try {
@@ -52,6 +53,7 @@ export default function SocietyPage() {
         setSociety(response.data.society)
         setIsFollowing(response.data.society.isFollowing)
         setIsAdmin(response.data.society.isAdmin)
+        setAdminRequestStatus(response.data.society.adminRequestStatus)
       }
       setIsLoading(false)
     } catch (error) {
@@ -63,7 +65,8 @@ export default function SocietyPage() {
 
   const fetchUpcomingEvents = async () => {
     try {
-      const response = await axios.get(`http://localhost:4000/api/events?societyId=${id}&upcoming=true`)
+      const url = `http://localhost:4000/api/events?societyId=${id}&upcoming=true${userEmail ? `&userEmail=${userEmail}` : ''}`
+      const response = await axios.get(url)
       if (response.data.success) {
         setUpcomingEvents(response.data.events)
       }
@@ -92,17 +95,18 @@ export default function SocietyPage() {
   const handleJoinAsAdmin = async () => {
     try {
       const response = await axios.post(`http://localhost:4000/api/societies/${id}/join-admin`, {
-        userEmail
+        userEmail,
+        userName: User?.user_name || User?.email?.split('@')[0]
       })
       if (response.data.success) {
-        setIsAdmin(true)
+        setAdminRequestStatus(response.data.adminRequestStatus)
         toast.success(response.data.message)
         // Refetch society to get updated data
         fetchSociety()
       }
     } catch (error) {
-      console.error('Error joining as admin:', error)
-      toast.error(error.response?.data?.message || 'Failed to join as admin')
+      console.error('Error requesting admin:', error)
+      toast.error(error.response?.data?.message || 'Failed to send admin request')
     }
   }
 
@@ -238,6 +242,29 @@ export default function SocietyPage() {
     }
   }
 
+  const handleEventUnregister = async (eventId) => {
+    try {
+      if (!userEmail) {
+        toast.error('Please login to cancel registration')
+        return
+      }
+
+      const response = await axios.post(`http://localhost:4000/api/events/${eventId}/unregister`, {
+        userEmail
+      })
+
+      if (response.data.success) {
+        toast.success(response.data.message || 'Registration cancelled successfully!')
+        // Close drawer and refresh events
+        setEventDrawerOpen(false)
+        fetchUpcomingEvents()
+      }
+    } catch (error) {
+      console.error('Error cancelling registration:', error)
+      toast.error(error.response?.data?.message || 'Failed to cancel registration')
+    }
+  }
+
   // Helper function to get initials from name
   const getInitials = (name) => {
     return name
@@ -291,12 +318,16 @@ export default function SocietyPage() {
 
       <main className="flex-1">
         {/* Cover Photo Section */}
-        <div className="relative h-64 overflow-hidden bg-gradient-to-br from-[#e50914] to-[#b00020] md:h-96">
-          <img
-            src={society.coverPhoto}
-            alt={society.name}
-            className="h-full w-full object-cover opacity-80"
-          />
+        <div className="relative h-64 overflow-hidden bg-gray-100 md:h-96">
+          {society.coverPhoto && society.coverPhoto.trim() !== '' && !society.coverPhoto.includes('placeholder') ? (
+            <img
+              src={society.coverPhoto}
+              alt={society.name}
+              className="h-full w-full object-cover opacity-80"
+            />
+          ) : (
+            <div className="h-full w-full bg-gray-100"></div>
+          )}
           {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
@@ -316,11 +347,15 @@ export default function SocietyPage() {
                   {/* Logo */}
                   <div className="relative -mt-16 md:-mt-20">
                     <div className="h-32 w-32 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-xl md:h-40 md:w-40">
-                      <img
-                        src={society.logo}
-                        alt={`${society.name} logo`}
-                        className="h-full w-full object-cover"
-                      />
+                      {society.logo && society.logo.trim() !== '' && !society.logo.includes('placeholder') ? (
+                        <img
+                          src={society.logo}
+                          alt={`${society.name} logo`}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-white"></div>
+                      )}
                     </div>
                   </div>
 
@@ -330,9 +365,6 @@ export default function SocietyPage() {
                       <h1 className="text-2xl font-extrabold text-gray-900 md:text-3xl">
                         {society.name}
                       </h1>
-                      <span className="rounded-full bg-gradient-to-r from-[#e50914] to-[#b00020] px-3 py-1 text-xs font-semibold text-white">
-                        {society.category}
-                      </span>
                     </div>
                     <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600 md:justify-start">
                       <div className="flex items-center gap-1">
@@ -403,12 +435,21 @@ export default function SocietyPage() {
                     {isFollowing ? 'Following' : 'Follow Society'}
                   </button>
                   
-                  {!isAdmin && (
+                  {!isAdmin && adminRequestStatus === 'pending' && (
+                    <span className="flex items-center gap-2 rounded-xl bg-yellow-100 px-6 py-3 text-sm font-semibold text-yellow-700">
+                      <svg className="h-5 w-5 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                      </svg>
+                      Admin Request Pending
+                    </span>
+                  )}
+                  
+                  {!isAdmin && adminRequestStatus !== 'pending' && (
                     <button
                       onClick={handleJoinAsAdmin}
                       className="rounded-xl border-2 border-gray-300 bg-white px-6 py-3 font-bold text-gray-700 shadow-lg transition-all hover:scale-105 hover:border-[#e50914] hover:text-[#e50914]"
                     >
-                      Join as Admin
+                      Request Admin Access
                     </button>
                   )}
                   
@@ -512,49 +553,74 @@ export default function SocietyPage() {
                     </button>
                   )}
                 </div>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {society.panelMembers.map((member) => (
-                    <div
-                      key={member._id}
-                      className="group relative overflow-hidden rounded-xl border-2 border-gray-100 bg-white p-6 text-center transition-all hover:border-[#e50914] hover:shadow-xl"
-                    >
-                      {isAdmin && (
-                        <div className="absolute right-2 top-2 flex gap-1">
-                          <button
-                            onClick={() => {
-                              setEditingMember(member)
-                              setShowEditMemberModal(true)
-                            }}
-                            className="rounded-lg bg-blue-500 p-1.5 text-white opacity-0 transition-opacity hover:bg-blue-600 group-hover:opacity-100"
-                            title="Edit"
-                          >
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteMember(member._id)}
-                            className="rounded-lg bg-red-500 p-1.5 text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
-                            title="Delete"
-                          >
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      )}
-                      <div className="mb-4 flex justify-center">
-                        <div className={`flex h-24 w-24 items-center justify-center rounded-full text-3xl font-bold text-white transition-all group-hover:scale-110 ${getColorForName(member.name)}`}>
-                          {getInitials(member.name)}
+                <div className="space-y-8">
+                  {/* Group panel members by batch in descending order */}
+                  {Object.entries(
+                    society.panelMembers.reduce((acc, member) => {
+                      const batch = member.batch || 'Unknown';
+                      if (!acc[batch]) {
+                        acc[batch] = [];
+                      }
+                      acc[batch].push(member);
+                      return acc;
+                    }, {})
+                  )
+                    .sort(([batchA], [batchB]) => {
+                      // Sort batches in ascending order (oldest first)
+                      if (batchA === 'Unknown') return 1;
+                      if (batchB === 'Unknown') return -1;
+                      return parseInt(batchA) - parseInt(batchB);
+                    })
+                    .map(([batch, members]) => (
+                      <div key={batch} className="border-b border-gray-200 pb-6 last:border-b-0">
+                        <h3 className="mb-4 text-xl font-bold text-[#e50914]">Batch {batch}</h3>
+                        <div className="space-y-3">
+                          {members.map((member) => (
+                            <div
+                              key={member._id}
+                              className="group flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3 transition-all hover:bg-gray-100"
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className={`flex h-12 w-12 items-center justify-center rounded-full text-sm font-bold text-white ${getColorForName(member.name)}`}>
+                                  {getInitials(member.name)}
+                                </div>
+                                <div>
+                                  <h4 className="font-bold text-gray-900">{member.name}</h4>
+                                  <p className="text-sm text-gray-600">
+                                    {member.position} • {member.department}
+                                  </p>
+                                </div>
+                              </div>
+                              {isAdmin && (
+                                <div className="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                  <button
+                                    onClick={() => {
+                                      setEditingMember(member)
+                                      setShowEditMemberModal(true)
+                                    }}
+                                    className="rounded-lg bg-blue-500 p-2 text-white transition hover:bg-blue-600"
+                                    title="Edit"
+                                  >
+                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteMember(member._id)}
+                                    className="rounded-lg bg-red-500 p-2 text-white transition hover:bg-red-600"
+                                    title="Delete"
+                                  >
+                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       </div>
-                      <h3 className="text-lg font-bold text-gray-900">{member.name}</h3>
-                      <p className="mt-1 font-semibold text-[#e50914]">{member.position}</p>
-                      <p className="mt-2 text-sm text-gray-600">
-                        {member.department} | Batch {member.batch}
-                      </p>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             )}
@@ -588,8 +654,8 @@ export default function SocietyPage() {
                     {upcomingEvents.map((event) => (
                       <div
                         key={event._id}
-                        onClick={() => !isAdmin && handleEventClick(event)}
-                        className={`group relative flex flex-col overflow-hidden rounded-xl bg-white shadow-lg transition-all hover:-translate-y-2 hover:shadow-2xl ${!isAdmin ? 'cursor-pointer' : ''}`}
+                        onClick={() => handleEventClick(event)}
+                        className="group relative flex flex-col overflow-hidden rounded-xl bg-white shadow-lg transition-all hover:-translate-y-2 hover:shadow-2xl cursor-pointer"
                       >
                         {isAdmin && (
                           <div className="absolute right-2 top-2 z-10 flex gap-1">
@@ -620,12 +686,16 @@ export default function SocietyPage() {
                             </button>
                           </div>
                         )}
-                        <div className="relative h-48 overflow-hidden">
-                          <img
-                            src={event.imageUrl}
-                            alt={event.title}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                          />
+                        <div className="relative h-48 overflow-hidden bg-gray-100">
+                          {event.imageUrl && event.imageUrl.trim() !== '' && !event.imageUrl.includes('placeholder') ? (
+                            <img
+                              src={event.imageUrl}
+                              alt={event.title}
+                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-gray-100"></div>
+                          )}
                           <div className="absolute left-3 top-3">
                             <span className="rounded-full bg-[#e50914] px-3 py-1 text-xs font-semibold text-white">
                               {event.category}
@@ -664,10 +734,16 @@ export default function SocietyPage() {
                           <p className="mb-3 flex-1 text-sm leading-relaxed text-gray-700">
                             {event.description}
                           </p>
-                          <div className="flex items-center justify-between border-t pt-3 text-xs text-gray-500">
-                            <span>{event.currentParticipants || 0} / {event.maxParticipants} registered</span>
-                            <span>Deadline: {new Date(event.registrationDeadline).toLocaleDateString()}</span>
-                          </div>
+                          {(event.maxParticipants || event.registrationDeadline) && (
+                            <div className="flex items-center justify-between border-t pt-3 text-xs text-gray-500">
+                              {event.maxParticipants && (
+                                <span>{event.currentParticipants || 0} / {event.maxParticipants} registered</span>
+                              )}
+                              {event.registrationDeadline && (
+                                <span>Deadline: {new Date(event.registrationDeadline).toLocaleDateString()}</span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -840,6 +916,7 @@ export default function SocietyPage() {
             setTimeout(() => setSelectedEvent(null), 300)
           }}
           onRegister={handleEventRegister}
+          onUnregister={handleEventUnregister}
         />
       )}
 

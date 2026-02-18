@@ -19,7 +19,7 @@ const eventSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['Workshop', 'Competition', 'Cultural', 'Seminar', 'Social', 'Exhibition', 'Professional']
+    enum: ['Workshop', 'Competition', 'Seminar', 'Other']
   },
   date: {
     type: Date,
@@ -27,12 +27,12 @@ const eventSchema = new mongoose.Schema({
   },
   time: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   venue: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   description: {
@@ -50,7 +50,7 @@ const eventSchema = new mongoose.Schema({
   },
   registrationDeadline: {
     type: Date,
-    required: true
+    required: false
   },
   registrations: [{
     type: String, // User email or ID

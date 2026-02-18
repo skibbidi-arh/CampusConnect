@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import EventDrawer from './EventDrawer'
 
-export default function EventCalendar({ events, onEventRegister, societies }) {
+export default function EventCalendar({ events, onEventRegister, onEventUnregister, societies }) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -42,7 +42,8 @@ export default function EventCalendar({ events, onEventRegister, societies }) {
   // Filter events
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
-      if (filters.society !== 'all' && event.societyId !== parseInt(filters.society)) {
+      // Convert both to strings for proper ObjectId comparison
+      if (filters.society !== 'all' && String(event.societyId) !== String(filters.society)) {
         return false
       }
       if (filters.category !== 'all' && event.category !== filters.category) {
@@ -65,7 +66,12 @@ export default function EventCalendar({ events, onEventRegister, societies }) {
   }
 
   const handleEventClick = (event) => {
-    setSelectedEvent(event)
+    // Ensure event has id field for EventDrawer
+    const eventWithId = {
+      ...event,
+      id: event._id || event.id
+    }
+    setSelectedEvent(eventWithId)
     setDrawerOpen(true)
   }
 
@@ -87,7 +93,7 @@ export default function EventCalendar({ events, onEventRegister, societies }) {
     'July', 'August', 'September', 'October', 'November', 'December'
   ]
 
-  const eventCategories = ['Workshop', 'Competition', 'Cultural', 'Seminar', 'Social']
+  const eventCategories = ['Workshop', 'Competition', 'Seminar', 'Other']
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
@@ -147,24 +153,20 @@ export default function EventCalendar({ events, onEventRegister, societies }) {
             <h4 className="mb-3 text-sm font-bold text-gray-900">Legend</h4>
             <div className="space-y-2 text-xs">
               <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-[#e50914]"></div>
-                <span className="text-gray-600">Workshop</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-[#b00020]"></div>
-                <span className="text-gray-600">Competition</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-[#8b0018]"></div>
-                <span className="text-gray-600">Cultural</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-purple-500"></div>
-                <span className="text-gray-600">Seminar</span>
+                <div className="h-3 w-3 rounded-full bg-red-700"></div>
+                <span className="text-gray-600">IUTCS</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                <span className="text-gray-600">Social</span>
+                <span className="text-gray-600">CBS</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                <span className="text-gray-600">IUTPS</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-orange-500"></div>
+                <span className="text-gray-600">IUTDS</span>
               </div>
             </div>
           </div>
@@ -248,12 +250,14 @@ export default function EventCalendar({ events, onEventRegister, societies }) {
                   {/* Events for this day */}
                   <div className="space-y-1">
                     {dayEvents.slice(0, 3).map((event) => {
-                      const categoryColors = {
-                        Workshop: 'bg-[#e50914]',
-                        Competition: 'bg-[#b00020]',
-                        Cultural: 'bg-[#8b0018]',
-                        Seminar: 'bg-purple-500',
-                        Social: 'bg-blue-500',
+                      // Function to get color based on society name
+                      const getSocietyColor = (societyName) => {
+                        const name = (societyName || '').toUpperCase().replace(/[-\s]/g, '')
+                        if (name.includes('IUTCS') || name.includes('CS')) return 'bg-red-700'
+                        if (name.includes('CBS')) return 'bg-blue-500'
+                        if (name.includes('IUTPS') || name.includes('PS')) return 'bg-green-500'
+                        if (name.includes('IUTDS') || name.includes('DS')) return 'bg-orange-500'
+                        return 'bg-gray-500' // Default color
                       }
 
                       return (
@@ -261,7 +265,7 @@ export default function EventCalendar({ events, onEventRegister, societies }) {
                           key={event.id}
                           onClick={() => handleEventClick(event)}
                           className={`w-full rounded-md ${
-                            categoryColors[event.category] || 'bg-gray-500'
+                            getSocietyColor(event.societyName)
                           } px-2 py-1 text-left text-xs font-medium text-white transition-all hover:scale-105 hover:shadow-md`}
                         >
                           <div className="truncate">{event.title}</div>
@@ -291,6 +295,7 @@ export default function EventCalendar({ events, onEventRegister, societies }) {
             setTimeout(() => setSelectedEvent(null), 300)
           }}
           onRegister={onEventRegister}
+          onUnregister={onEventUnregister}
         />
       )}
     </div>

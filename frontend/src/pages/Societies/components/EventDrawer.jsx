@@ -1,4 +1,4 @@
-export default function EventDrawer({ event, isOpen, onClose, onRegister }) {
+export default function EventDrawer({ event, isOpen, onClose, onRegister, onUnregister }) {
   if (!event) return null
 
   const formatDate = (date) => {
@@ -12,13 +12,14 @@ export default function EventDrawer({ event, isOpen, onClose, onRegister }) {
   }
 
   const getAvailabilityColor = () => {
+    if (!event.maxParticipants) return 'text-gray-600'
     const percentage = (event.currentParticipants / event.maxParticipants) * 100
     if (percentage >= 90) return 'text-red-600'
     if (percentage >= 70) return 'text-yellow-600'
     return 'text-green-600'
   }
 
-  const spotsLeft = event.maxParticipants - event.currentParticipants
+  const spotsLeft = event.maxParticipants ? event.maxParticipants - event.currentParticipants : null
 
   return (
     <>
@@ -55,21 +56,23 @@ export default function EventDrawer({ event, isOpen, onClose, onRegister }) {
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto">
             {/* Event Image */}
-            {event.imageUrl && (
-              <div className="relative h-64 w-full overflow-hidden">
+            <div className="relative h-64 w-full overflow-hidden bg-gray-100">
+              {event.imageUrl && event.imageUrl.trim() !== '' && !event.imageUrl.includes('placeholder') ? (
                 <img
                   src={event.imageUrl}
                   alt={event.title}
                   className="h-full w-full object-cover"
                 />
-                {/* Category Badge */}
-                <div className="absolute right-4 top-4">
-                  <span className="rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-gray-900 shadow-lg backdrop-blur-sm">
-                    {event.category}
-                  </span>
-                </div>
+              ) : (
+                <div className="h-full w-full bg-gray-100"></div>
+              )}
+              {/* Category Badge */}
+              <div className="absolute right-4 top-4">
+                <span className="rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-gray-900 shadow-lg backdrop-blur-sm">
+                  {event.category}
+                </span>
               </div>
-            )}
+            </div>
 
             <div className="p-6">
               {/* Event Title */}
@@ -112,39 +115,43 @@ export default function EventDrawer({ event, isOpen, onClose, onRegister }) {
                 </div>
 
                 {/* Registration Deadline */}
-                <div className="flex items-start gap-3 rounded-xl bg-gray-50 p-4">
-                  <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#e50914]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div>
-                    <div className="text-sm font-semibold text-gray-900">Registration Deadline</div>
-                    <div className="mt-1 text-sm text-gray-600">
-                      {formatDate(event.registrationDeadline)}
+                {event.registrationDeadline && (
+                  <div className="flex items-start gap-3 rounded-xl bg-gray-50 p-4">
+                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#e50914]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900">Registration Deadline</div>
+                      <div className="mt-1 text-sm text-gray-600">
+                        {formatDate(event.registrationDeadline)}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Availability */}
-                <div className="flex items-start gap-3 rounded-xl bg-gray-50 p-4">
+                {event.maxParticipants && (
+                  <div className="flex items-start gap-3 rounded-xl bg-gray-50 p-4">
                   <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#e50914]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold text-gray-900">Available Spots</div>
-                    <div className={`mt-1 text-sm font-semibold ${getAvailabilityColor()}`}>
-                      {spotsLeft} of {event.maxParticipants} spots remaining
-                    </div>
-                    {/* Progress Bar */}
-                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#e50914] to-[#b00020] transition-all"
-                        style={{
-                          width: `${(event.currentParticipants / event.maxParticipants) * 100}%`,
-                        }}
-                      />
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-gray-900">Available Spots</div>
+                      <div className={`mt-1 text-sm font-semibold ${getAvailabilityColor()}`}>
+                        {spotsLeft} of {event.maxParticipants} spots remaining
+                      </div>
+                      {/* Progress Bar */}
+                      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-[#e50914] to-[#b00020] transition-all"
+                          style={{
+                            width: `${(event.currentParticipants / event.maxParticipants) * 100}%`,
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Description */}
@@ -154,7 +161,7 @@ export default function EventDrawer({ event, isOpen, onClose, onRegister }) {
               </div>
 
               {/* Additional Info */}
-              {spotsLeft === 0 && (
+              {event.maxParticipants && spotsLeft === 0 && (
                 <div className="mb-6 rounded-xl bg-red-50 p-4">
                   <div className="flex items-center gap-2 text-red-800">
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,19 +175,40 @@ export default function EventDrawer({ event, isOpen, onClose, onRegister }) {
           </div>
 
           {/* Footer with Register Button */}
-          <div className="border-t-2 border-gray-100 p-6">
-            <button
-              onClick={() => onRegister(event.id)}
-              disabled={spotsLeft === 0}
-              className={`w-full rounded-xl px-6 py-3.5 font-bold text-white shadow-lg transition-all ${
-                spotsLeft === 0
-                  ? 'cursor-not-allowed bg-gray-400'
-                  : 'bg-gradient-to-r from-[#e50914] to-[#b00020] hover:shadow-xl hover:scale-105'
-              }`}
-            >
-              {spotsLeft === 0 ? 'Event Full' : 'Register for Event'}
-            </button>
-          </div>
+          {(event.registrationDeadline || event.maxParticipants) && (
+            <div className="border-t-2 border-gray-100 p-6">
+              {event.isRegistered ? (
+                <div className="space-y-3">
+                  {/* Registered Status Badge */}
+                  <div className="flex items-center justify-center gap-2 rounded-xl bg-green-50 px-4 py-3">
+                    <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm font-semibold text-green-700">You are registered for this event</span>
+                  </div>
+                  {/* Cancel Registration Button */}
+                  <button
+                    onClick={() => onUnregister(event.id)}
+                    className="w-full rounded-xl border-2 border-red-600 bg-white px-6 py-3.5 font-bold text-red-600 shadow-sm transition-all hover:bg-red-50 hover:shadow-md"
+                  >
+                    Cancel Registration
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => onRegister(event.id)}
+                  disabled={event.maxParticipants && spotsLeft === 0}
+                  className={`w-full rounded-xl px-6 py-3.5 font-bold text-white shadow-lg transition-all ${
+                    event.maxParticipants && spotsLeft === 0
+                      ? 'cursor-not-allowed bg-gray-400'
+                      : 'bg-gradient-to-r from-[#e50914] to-[#b00020] hover:shadow-xl hover:scale-105'
+                  }`}
+                >
+                  {event.maxParticipants && spotsLeft === 0 ? 'Event Full' : 'Register for Event'}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </>

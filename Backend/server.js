@@ -12,6 +12,7 @@ const roomBookingRoutes = require('./routes/roomBooking.routes.js')
 const feedBackRoutes = require('./routes/feedbackRoutes.js')
 const societyRoutes = require('./routes/society.routes.js')
 const eventRoutes = require('./routes/event.routes.js')
+const administratorRoutes = require('./routes/administrator.routes.js')
 const httpproxy = require('http-proxy')
 
 
@@ -47,6 +48,7 @@ app.use('/api/bookRoom', roomBookingRoutes)
 app.use('/anonymous/api/feedback', feedBackRoutes)
 app.use('/api', societyRoutes)
 app.use('/api', eventRoutes)
+app.use('/api/administrator', administratorRoutes)
 
 
 

@@ -12,7 +12,7 @@ import SocietyCard from './components/SocietyCard'
 export default function Societies() {
   const navigate = useNavigate()
   const { User } = AuthContext()
-  const [view, setView] = useState('calendar') // 'calendar' or 'societies'
+  const [view, setView] = useState('societies') // 'calendar' or 'societies'
   const [societies, setSocieties] = useState([])
   const [events, setEvents] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -21,7 +21,8 @@ export default function Societies() {
   useEffect(() => {
     fetchSocieties()
     fetchEvents()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [User?.email])
 
   const fetchSocieties = async () => {
     try {
@@ -39,7 +40,9 @@ export default function Societies() {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/events')
+      const userEmail = User?.email
+      const url = `http://localhost:4000/api/events${userEmail ? `?userEmail=${userEmail}` : ''}`
+      const response = await axios.get(url)
       if (response.data.success) {
         setEvents(response.data.events)
       }
@@ -68,6 +71,28 @@ export default function Societies() {
     } catch (error) {
       console.error('Error registering for event:', error)
       toast.error(error.response?.data?.message || 'Failed to register for event')
+    }
+  }
+
+  const handleEventUnregister = async (eventId) => {
+    try {
+      if (!User?.email) {
+        toast.error('Please login to cancel registration')
+        return
+      }
+
+      const response = await axios.post(`http://localhost:4000/api/events/${eventId}/unregister`, {
+        userEmail: User.email
+      })
+
+      if (response.data.success) {
+        toast.success(response.data.message || 'Registration cancelled successfully!')
+        // Refresh events to update participant count
+        fetchEvents()
+      }
+    } catch (error) {
+      console.error('Error cancelling registration:', error)
+      toast.error(error.response?.data?.message || 'Failed to cancel registration')
     }
   }
 
@@ -131,6 +156,7 @@ export default function Societies() {
             <EventCalendar 
               events={events}
               onEventRegister={handleEventRegister}
+              onEventUnregister={handleEventUnregister}
               societies={societies}
             />
           ) : (

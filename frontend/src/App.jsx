@@ -11,6 +11,7 @@ import SocietyPage from './pages/Societies/SocietyPage'
 import Navbar from './pages/Anonymous/components/Navbar'
 import CategoryFeedback from './pages/Anonymous/pages/CategoryFeedback'
 import Home from './pages/Anonymous/pages/Home'
+import Administrator from './pages/Administrator'
 
 // 1. FIXED Layout component with a container
 const AnonymousLayout = () => (
@@ -47,6 +48,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/administrator" element={<Administrator />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/calendar" element={<Dashboard />} />
         <Route path="/medical" element={<Dashboard />} />

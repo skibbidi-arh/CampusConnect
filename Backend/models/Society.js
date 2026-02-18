@@ -64,11 +64,6 @@ const societySchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  category: {
-    type: String,
-    required: true,
-    enum: ['Technical', 'Cultural', 'Professional', 'Sports', 'Other']
-  },
   establishedYear: {
     type: Number,
     required: true
@@ -92,6 +87,27 @@ const societySchema = new mongoose.Schema({
   admins: [{
     type: String, // User email or ID
     trim: true
+  }],
+  adminRequests: [{
+    userEmail: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    userName: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    requestedAt: {
+      type: Date,
+      default: Date.now
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending'
+    }
   }],
   followers: [{
     type: String, // User email or ID

@@ -7,7 +7,6 @@ export default function EditSocietyModal({ society, userEmail, onClose, onSucces
     logo: null,
     coverPhoto: null,
     description: '',
-    category: '',
     establishedYear: '',
     email: '',
     facebook: '',
@@ -16,6 +15,8 @@ export default function EditSocietyModal({ society, userEmail, onClose, onSucces
   const [logoPreview, setLogoPreview] = useState('')
   const [coverPreview, setCoverPreview] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [logoRemoved, setLogoRemoved] = useState(false)
+  const [coverRemoved, setCoverRemoved] = useState(false)
 
   useEffect(() => {
     if (society) {
@@ -24,7 +25,6 @@ export default function EditSocietyModal({ society, userEmail, onClose, onSucces
         logo: null,
         coverPhoto: null,
         description: society.description || '',
-        category: society.category || '',
         establishedYear: society.establishedYear || '',
         email: society.email || '',
         facebook: society.facebook || '',
@@ -32,6 +32,8 @@ export default function EditSocietyModal({ society, userEmail, onClose, onSucces
       })
       setLogoPreview(society.logo || '')
       setCoverPreview(society.coverPhoto || '')
+      setLogoRemoved(false)
+      setCoverRemoved(false)
     }
   }, [society])
 
@@ -52,6 +54,7 @@ export default function EditSocietyModal({ society, userEmail, onClose, onSucces
         return
       }
       setFormData({ ...formData, logo: file })
+      setLogoRemoved(false)
       const reader = new FileReader()
       reader.onloadend = () => {
         setLogoPreview(reader.result)
@@ -72,6 +75,7 @@ export default function EditSocietyModal({ society, userEmail, onClose, onSucces
         return
       }
       setFormData({ ...formData, coverPhoto: file })
+      setCoverRemoved(false)
       const reader = new FileReader()
       reader.onloadend = () => {
         setCoverPreview(reader.result)
@@ -95,7 +99,6 @@ export default function EditSocietyModal({ society, userEmail, onClose, onSucces
       const dataToSend = {
         name: formData.name,
         description: formData.description,
-        category: formData.category,
         establishedYear: formData.establishedYear,
         email: formData.email,
         facebook: formData.facebook,
@@ -103,14 +106,18 @@ export default function EditSocietyModal({ society, userEmail, onClose, onSucces
         userEmail
       }
 
-      // Convert logo to base64 if it's a File object
+      // Handle logo: send base64 if new file, empty string if removed, or don't send if unchanged
       if (formData.logo instanceof File) {
         dataToSend.logo = logoPreview
+      } else if (logoRemoved) {
+        dataToSend.logo = ''
       }
 
-      // Convert cover photo to base64 if it's a File object
+      // Handle cover photo: send base64 if new file, empty string if removed, or don't send if unchanged
       if (formData.coverPhoto instanceof File) {
         dataToSend.coverPhoto = coverPreview
+      } else if (coverRemoved) {
+        dataToSend.coverPhoto = ''
       }
 
       const response = await fetch(`http://localhost:4000/api/societies/${society._id}`, {
@@ -135,8 +142,6 @@ export default function EditSocietyModal({ society, userEmail, onClose, onSucces
       setIsSubmitting(false)
     }
   }
-
-  const categories = ['Technical', 'Cultural', 'Professional', 'Sports', 'Other']
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -178,8 +183,9 @@ export default function EditSocietyModal({ society, userEmail, onClose, onSucces
                     <button
                       type="button"
                       onClick={() => {
-                        setLogoPreview(society.logo || '')
+                        setLogoPreview('')
                         setFormData({ ...formData, logo: null })
+                        setLogoRemoved(true)
                       }}
                       className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white shadow-lg transition-colors hover:bg-red-600"
                       title="Remove image"
@@ -216,8 +222,9 @@ export default function EditSocietyModal({ society, userEmail, onClose, onSucces
                     <button
                       type="button"
                       onClick={() => {
-                        setCoverPreview(society.coverPhoto || '')
+                        setCoverPreview('')
                         setFormData({ ...formData, coverPhoto: null })
+                        setCoverRemoved(true)
                       }}
                       className="absolute right-2 top-2 rounded-full bg-red-500 p-1.5 text-white shadow-lg transition-colors hover:bg-red-600"
                       title="Remove image"
@@ -245,26 +252,8 @@ export default function EditSocietyModal({ society, userEmail, onClose, onSucces
               />
             </div>
 
-            {/* Category */}
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">Category *</label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 focus:border-[#e50914] focus:outline-none"
-                required
-              >
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             {/* Established Year */}
-            <div>
+            <div className="md:col-span-2">
               <label className="mb-2 block text-sm font-semibold text-gray-700">Established Year *</label>
               <input
                 type="number"

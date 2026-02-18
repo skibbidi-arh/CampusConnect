@@ -4,7 +4,6 @@ import toast from 'react-hot-toast'
 export default function CreateEventModal({ societies, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
     title: '',
-    societyId: societies[0]?.id || '',
     category: 'Workshop',
     date: '',
     time: '',
@@ -17,7 +16,7 @@ export default function CreateEventModal({ societies, onClose, onSubmit }) {
   const [imagePreview, setImagePreview] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const eventCategories = ['Workshop', 'Competition', 'Cultural', 'Seminar', 'Social']
+  const eventCategories = ['Workshop', 'Competition', 'Seminar', 'Other']
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -52,29 +51,13 @@ export default function CreateEventModal({ societies, onClose, onSubmit }) {
       toast.error('Please select event date')
       return
     }
-    if (!formData.time) {
-      toast.error('Please select event time')
-      return
-    }
-    if (!formData.venue.trim()) {
-      toast.error('Please enter venue')
-      return
-    }
     if (!formData.description.trim()) {
       toast.error('Please enter event description')
       return
     }
-    if (!formData.maxParticipants || formData.maxParticipants < 1) {
-      toast.error('Please enter valid max participants')
-      return
-    }
-    if (!formData.registrationDeadline) {
-      toast.error('Please select registration deadline')
-      return
-    }
 
-    // Check if registration deadline is before event date
-    if (new Date(formData.registrationDeadline) >= new Date(formData.date)) {
+    // Check if registration deadline is before event date (only if deadline is provided)
+    if (formData.registrationDeadline && new Date(formData.registrationDeadline) >= new Date(formData.date)) {
       toast.error('Registration deadline must be before event date')
       return
     }
@@ -135,25 +118,7 @@ export default function CreateEventModal({ societies, onClose, onSubmit }) {
 
               {/* Society and Category Row */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {/* Society */}
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-gray-900">
-                    Host Society <span className="text-[#e50914]">*</span>
-                  </label>
-                  <select
-                    name="societyId"
-                    value={formData.societyId}
-                    onChange={handleChange}
-                    className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
-                    required
-                  >
-                    {societies.map((society) => (
-                      <option key={society.id} value={society.id}>
-                        {society.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+
 
                 {/* Category */}
                 <div>
@@ -197,7 +162,7 @@ export default function CreateEventModal({ societies, onClose, onSubmit }) {
                 {/* Time */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-gray-900">
-                    Event Time <span className="text-[#e50914]">*</span>
+                    Event Time <span className="text-[#e50914]"></span>
                   </label>
                   <input
                     type="time"
@@ -205,7 +170,6 @@ export default function CreateEventModal({ societies, onClose, onSubmit }) {
                     value={formData.time}
                     onChange={handleChange}
                     className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
-                    required
                   />
                 </div>
               </div>
@@ -213,7 +177,7 @@ export default function CreateEventModal({ societies, onClose, onSubmit }) {
               {/* Venue */}
               <div>
                 <label className="mb-2 block text-sm font-semibold text-gray-900">
-                  Venue <span className="text-[#e50914]">*</span>
+                  Venue <span className="text-[#e50914]"></span>
                 </label>
                 <input
                   type="text"
@@ -222,7 +186,6 @@ export default function CreateEventModal({ societies, onClose, onSubmit }) {
                   onChange={handleChange}
                   placeholder="e.g., IUT Auditorium"
                   className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
-                  required
                 />
               </div>
 
@@ -247,7 +210,7 @@ export default function CreateEventModal({ societies, onClose, onSubmit }) {
                 {/* Max Participants */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-gray-900">
-                    Max Participants <span className="text-[#e50914]">*</span>
+                    Max Participants <span className="text-[#e50914]"></span>
                   </label>
                   <input
                     type="number"
@@ -257,14 +220,13 @@ export default function CreateEventModal({ societies, onClose, onSubmit }) {
                     min="1"
                     placeholder="e.g., 100"
                     className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
-                    required
                   />
                 </div>
 
                 {/* Registration Deadline */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-gray-900">
-                    Registration Deadline <span className="text-[#e50914]">*</span>
+                    Registration Deadline <span className="text-[#e50914]"></span>
                   </label>
                   <input
                     type="date"
@@ -274,7 +236,6 @@ export default function CreateEventModal({ societies, onClose, onSubmit }) {
                     min={new Date().toISOString().split('T')[0]}
                     max={formData.date}
                     className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
-                    required
                   />
                 </div>
               </div>

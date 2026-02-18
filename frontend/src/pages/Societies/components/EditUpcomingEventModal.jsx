@@ -16,8 +16,9 @@ export default function EditUpcomingEventModal({ event, userEmail, onClose, onSu
   })
   const [imagePreview, setImagePreview] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [imageRemoved, setImageRemoved] = useState(false)
 
-  const eventCategories = ['Workshop', 'Competition', 'Cultural', 'Seminar', 'Social']
+  const eventCategories = ['Workshop', 'Competition', 'Seminar', 'Other']
 
   useEffect(() => {
     if (event) {
@@ -35,6 +36,7 @@ export default function EditUpcomingEventModal({ event, userEmail, onClose, onSu
         image: null
       })
       setImagePreview(event.imageUrl || '')
+      setImageRemoved(false)
     }
   }, [event])
 
@@ -55,6 +57,7 @@ export default function EditUpcomingEventModal({ event, userEmail, onClose, onSu
         return
       }
       setFormData({ ...formData, image: file })
+      setImageRemoved(false)
       const reader = new FileReader()
       reader.onloadend = () => {
         setImagePreview(reader.result)
@@ -75,29 +78,13 @@ export default function EditUpcomingEventModal({ event, userEmail, onClose, onSu
       toast.error('Please select event date')
       return
     }
-    if (!formData.time) {
-      toast.error('Please select event time')
-      return
-    }
-    if (!formData.venue.trim()) {
-      toast.error('Please enter venue')
-      return
-    }
     if (!formData.description.trim()) {
       toast.error('Please enter event description')
       return
     }
-    if (!formData.maxParticipants || formData.maxParticipants < 1) {
-      toast.error('Please enter valid max participants')
-      return
-    }
-    if (!formData.registrationDeadline) {
-      toast.error('Please select registration deadline')
-      return
-    }
 
     // Check if registration deadline is before event date
-    if (new Date(formData.registrationDeadline) >= new Date(formData.date)) {
+    if (formData.registrationDeadline && new Date(formData.registrationDeadline) >= new Date(formData.date)) {
       toast.error('Registration deadline must be before event date')
       return
     }
@@ -111,9 +98,12 @@ export default function EditUpcomingEventModal({ event, userEmail, onClose, onSu
         userEmail
       }
 
-      // Convert image to base64 if it's a File object
+      // Handle image: send base64 if new file, empty string if removed
       if (formData.image instanceof File) {
         dataToSend.imageUrl = imagePreview
+        delete dataToSend.image
+      } else if (imageRemoved) {
+        dataToSend.imageUrl = ''
         delete dataToSend.image
       } else if (imagePreview) {
         dataToSend.imageUrl = imagePreview
@@ -222,7 +212,7 @@ export default function EditUpcomingEventModal({ event, userEmail, onClose, onSu
                 {/* Time */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-gray-900">
-                    Event Time <span className="text-[#e50914]">*</span>
+                    Event Time <span className="text-[#e50914]"></span>
                   </label>
                   <input
                     type="time"
@@ -230,7 +220,6 @@ export default function EditUpcomingEventModal({ event, userEmail, onClose, onSu
                     value={formData.time}
                     onChange={handleChange}
                     className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
-                    required
                   />
                 </div>
               </div>
@@ -238,7 +227,7 @@ export default function EditUpcomingEventModal({ event, userEmail, onClose, onSu
               {/* Venue */}
               <div>
                 <label className="mb-2 block text-sm font-semibold text-gray-900">
-                  Venue <span className="text-[#e50914]">*</span>
+                  Venue <span className="text-[#e50914]"></span>
                 </label>
                 <input
                   type="text"
@@ -247,7 +236,6 @@ export default function EditUpcomingEventModal({ event, userEmail, onClose, onSu
                   onChange={handleChange}
                   placeholder="e.g., Main Auditorium, Block A"
                   className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
-                  required
                 />
               </div>
 
@@ -272,7 +260,7 @@ export default function EditUpcomingEventModal({ event, userEmail, onClose, onSu
                 {/* Max Participants */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-gray-900">
-                    Max Participants <span className="text-[#e50914]">*</span>
+                    Max Participants <span className="text-[#e50914]"></span>
                   </label>
                   <input
                     type="number"
@@ -282,14 +270,13 @@ export default function EditUpcomingEventModal({ event, userEmail, onClose, onSu
                     min="1"
                     placeholder="e.g., 100"
                     className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
-                    required
                   />
                 </div>
 
                 {/* Registration Deadline */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-gray-900">
-                    Registration Deadline <span className="text-[#e50914]">*</span>
+                    Registration Deadline <span className="text-[#e50914]"></span>
                   </label>
                   <input
                     type="date"
@@ -299,7 +286,6 @@ export default function EditUpcomingEventModal({ event, userEmail, onClose, onSu
                     min={new Date().toISOString().split('T')[0]}
                     max={formData.date}
                     className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
-                    required
                   />
                 </div>
               </div>
@@ -332,8 +318,9 @@ export default function EditUpcomingEventModal({ event, userEmail, onClose, onSu
                           type="button"
                           onClick={(e) => {
                             e.preventDefault()
-                            setImagePreview(event?.imageUrl || '')
+                            setImagePreview('')
                             setFormData({ ...formData, image: null })
+                            setImageRemoved(true)
                           }}
                           className="absolute right-2 top-2 rounded-full bg-red-500 p-2 text-white shadow-lg transition-all hover:bg-red-600"
                         >
