@@ -10,3 +10,6 @@ langchain-groq
 python-dotenv
 flask
 flask-cors
+scikit-learn
+numpy
+rank-bm25

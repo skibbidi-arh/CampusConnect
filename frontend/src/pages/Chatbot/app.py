@@ -5,7 +5,7 @@ from src.search import RAGSearch
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Initialize RAG Search (handles vectorstore, LLM, and document loading)
+# Initialize RAG Search with improved accuracy
 rag_search = RAGSearch(
     persist_dir="./data/vector_store",
     embedding_model="all-MiniLM-L6-v2",
@@ -18,9 +18,21 @@ print(f"[INFO] RAG Search initialized with {rag_search.vectorstore.collection.co
 def home():
     return jsonify({
         'status': 'running',
-        'message': 'CampusConnect Chatbot API is running',
+        'message': 'CampusConnect Chatbot API with Enhanced Accuracy',
+        'features': [
+            'Query preprocessing and expansion',
+            'Cross-encoder re-ranking',
+            'Confidence scoring',
+            'Multi-document support',
+            'Clean user interface without source exposure'
+        ],
         'endpoints': {
-            '/ask': 'POST - Send a query to the chatbot'
+            '/ask': 'POST - Send a query to the chatbot (returns answer with confidence)',
+            'response_fields': {
+                'answer': 'The chatbot response text',
+                'confidence': 'Confidence level and score',
+                'relevance_score': 'Overall relevance score (0-1)'
+            }
         }
     })
 
@@ -28,13 +40,20 @@ def home():
 def ask():
     data = request.json
     query = data.get('query', '')
-    top_k = data.get('top_k', 5)  # Increased from 3 to 5 for better context
+    top_k = data.get('top_k', 5)  # Number of documents to use for context
     
     if not query:
         return jsonify({'error': 'Query cannot be empty'}), 400
     
+    # Get enhanced response with confidence scoring
     result = rag_search.ask(query, top_k=top_k)
-    return jsonify(result)
+    
+    # Return simplified response without exposing sources to users
+    return jsonify({
+        'answer': result['answer'],
+        'confidence': result['confidence'],
+        'relevance_score': result['relevance_score']
+    })
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

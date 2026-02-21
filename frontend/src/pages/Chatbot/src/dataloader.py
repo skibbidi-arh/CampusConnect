@@ -5,6 +5,28 @@ from langchain_community.document_loaders import Docx2txtLoader
 from langchain_community.document_loaders.excel import UnstructuredExcelLoader
 from langchain_community.document_loaders import JSONLoader
 
+def classify_document(filename: str) -> str:
+    """
+    Classify document based on filename keywords.
+    Returns: document type category
+    """
+    filename_lower = filename.lower()
+    
+    if any(keyword in filename_lower for keyword in ['event', 'fest', 'program', 'schedule']):
+        return 'events'
+    elif any(keyword in filename_lower for keyword in ['course', 'syllabus', 'curriculum', 'class']):
+        return 'courses'
+    elif any(keyword in filename_lower for keyword in ['club', 'society', 'organization']):
+        return 'clubs'
+    elif any(keyword in filename_lower for keyword in ['facility', 'campus', 'building', 'room']):
+        return 'facilities'
+    elif any(keyword in filename_lower for keyword in ['sponsor', 'partner', 'funding']):
+        return 'sponsorship'
+    elif any(keyword in filename_lower for keyword in ['rule', 'regulation', 'policy', 'guideline']):
+        return 'policies'
+    else:
+        return 'general'
+
 def load_all_documents(data_dir: str) -> List[Any]:
     """
     Load all supported files from the data directory and convert to LangChain document structure.
@@ -24,13 +46,18 @@ def load_all_documents(data_dir: str) -> List[Any]:
             loader = PyMuPDFLoader(str(pdf_file))
             loaded = loader.load()
             
-            # Add source information to metadata
+            # Classify document type
+            doc_type = classify_document(pdf_file.name)
+            
+            # Add rich metadata to each page
             for doc in loaded:
                 doc.metadata['source_file'] = pdf_file.name
                 doc.metadata['source_path'] = str(pdf_file)
                 doc.metadata['source_directory'] = str(pdf_file.parent)
+                doc.metadata['document_type'] = doc_type
+                doc.metadata['file_extension'] = 'pdf'
             
-            print(f"[DEBUG] Loaded {len(loaded)} PDF docs from {pdf_file}")
+            print(f"[DEBUG] Loaded {len(loaded)} PDF docs from {pdf_file} (Type: {doc_type})")
             documents.extend(loaded)
         except Exception as e:
             print(f"[ERROR] Failed to load PDF {pdf_file}: {e}")

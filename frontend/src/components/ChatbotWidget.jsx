@@ -6,7 +6,7 @@ export default function ChatbotWidget() {
     {
       id: 1,
       type: 'bot',
-      text: 'Hello! I\'m here to help you with information about ICT Fest 2024. Ask me anything!',
+      text: 'Hello! 👋 I\'m your CampusConnect AI Assistant. I can help you with information about campus events, clubs, facilities, and much more. How can I assist you today?',
       timestamp: new Date(),
     },
   ]);
@@ -55,6 +55,8 @@ export default function ChatbotWidget() {
         type: 'bot',
         text: response.answer,
         sources: response.sources,
+        confidence: response.confidence,
+        relevanceScore: response.relevance_score,
         timestamp: new Date(),
       };
 
@@ -63,7 +65,7 @@ export default function ChatbotWidget() {
       const errorMessage = {
         id: Date.now() + 1,
         type: 'bot',
-        text: 'Sorry, I encountered an error. Please make sure the chatbot service is running.',
+        text: 'I apologize, but I\'m having trouble connecting right now. Please ensure the chatbot service is running and try again.',
         isError: true,
         timestamp: new Date(),
       };
@@ -89,14 +91,15 @@ export default function ChatbotWidget() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#e50914] via-[#b00020] to-[#8b0018] px-6 py-4 shadow-lg">
+    <div className="flex h-full flex-col bg-white">
+      {/* Professional Header */}
+      <div className="bg-gradient-to-r from-red-600 via-red-700 to-rose-700 px-6 py-5 shadow-md">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+          <div className="flex items-center gap-4">
+            {/* Bot Avatar */}
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-lg">
               <svg
-                className="h-6 w-6 text-white"
+                className="h-7 w-7 text-red-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -105,20 +108,20 @@ export default function ChatbotWidget() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
                 />
               </svg>
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">IUT Assistant</h2>
+              <h2 className="text-lg font-semibold text-white">Campus AI Assistant</h2>
               <div className="flex items-center gap-2">
                 <div
                   className={`h-2 w-2 rounded-full ${
-                    isServiceActive ? 'bg-green-400' : 'bg-red-400'
+                    isServiceActive ? 'bg-green-400 animate-pulse' : 'bg-red-400'
                   }`}
                 ></div>
-                <span className="text-xs text-white/80">
-                  {isServiceActive ? 'Online' : 'Offline - Start the service'}
+                <span className="text-xs text-white/90">
+                  {isServiceActive ? 'Available 24/7' : 'Service Offline'}
                 </span>
               </div>
             </div>
@@ -126,110 +129,152 @@ export default function ChatbotWidget() {
         </div>
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="mx-auto max-w-4xl space-y-4">
-          {messages.map((message) => (
+      {/* Messages Area with Professional Styling */}
+      <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white px-4 py-6">
+        <div className="mx-auto max-w-4xl space-y-6">
+          {messages.map((message, index) => (
             <div
               key={message.id}
-              className={`flex ${
+              className={`flex items-end gap-3 ${
                 message.type === 'user' ? 'justify-end' : 'justify-start'
-              }`}
+              } animate-fadeIn`}
             >
+              {/* Bot Avatar for bot messages */}
+              {message.type === 'bot' && (
+                <div className="mb-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-rose-600 shadow-md">
+                  <svg
+                    className="h-5 w-5 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                    />
+                  </svg>
+                </div>
+              )}
+
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-md ${
+                className={`max-w-[75%] ${
                   message.type === 'user'
-                    ? 'bg-gradient-to-r from-[#e50914] to-[#b00020] text-white'
+                    ? 'rounded-3xl rounded-br-md bg-gradient-to-r from-red-600 to-rose-700 px-5 py-3 text-white shadow-md'
                     : message.isError
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-white text-gray-800'
+                    ? 'rounded-3xl rounded-bl-md bg-red-50 px-5 py-3 text-red-700 shadow-sm border border-red-200'
+                    : 'rounded-3xl rounded-bl-md bg-white px-5 py-3 text-gray-800 shadow-md border border-gray-100'
                 }`}
               >
-                <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">
                   {message.text}
                 </p>
                 
-                {/* Sources */}
-                {message.sources && message.sources.length > 0 && (
-                  <div className="mt-3 border-t border-gray-200 pt-3">
-                    <p className="mb-2 text-xs font-semibold text-gray-600">
-                      Sources:
-                    </p>
-                    <div className="space-y-2">
-                      {message.sources.map((source, idx) => (
-                        <div
-                          key={idx}
-                          className="rounded-lg bg-gray-50 p-2 text-xs"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-gray-700">
-                              {source.source_file}
-                            </span>
-                            <span className="text-gray-500">
-                              Page {source.page}
-                            </span>
-                          </div>
-                          <p className="mt-1 text-gray-600">
-                            {source.content_preview}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                <p className="mt-1 text-right text-xs opacity-70">
+                <p className={`mt-2 text-[11px] ${
+                  message.type === 'user' ? 'text-red-100' : 'text-gray-500'
+                }`}>
                   {formatTime(message.timestamp)}
                 </p>
               </div>
+
+              {/* User Avatar for user messages */}
+              {message.type === 'user' && (
+                <div className="mb-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gray-600 to-gray-700 shadow-md">
+                  <svg
+                    className="h-5 w-5 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </div>
+              )}
             </div>
           ))}
           
+          {/* Professional Typing Indicator */}
           {isLoading && (
-            <div className="flex justify-start">
-              <div className="rounded-2xl bg-white px-4 py-3 shadow-md">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 delay-75"></div>
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 delay-150"></div>
+            <div className="flex items-end gap-3 animate-fadeIn">
+              <div className="mb-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-rose-600 shadow-md">
+                <svg
+                  className="h-5 w-5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                  />
+                </svg>
+              </div>
+              <div className="rounded-3xl rounded-bl-md bg-white px-5 py-4 shadow-md border border-gray-100">
+                <div className="flex items-center gap-1.5">
+                  <div className="h-2.5 w-2.5 animate-bounce rounded-full bg-red-500 [animation-delay:-0.3s]"></div>
+                  <div className="h-2.5 w-2.5 animate-bounce rounded-full bg-red-500 [animation-delay:-0.15s]"></div>
+                  <div className="h-2.5 w-2.5 animate-bounce rounded-full bg-red-500"></div>
                 </div>
               </div>
             </div>
           )}
-          
+
           <div ref={messagesEndRef} />
         </div>
       </div>
 
-      {/* Input Area */}
+      {/* Modern Input Area */}
       <div className="border-t border-gray-200 bg-white px-4 py-4 shadow-lg">
         <div className="mx-auto max-w-4xl">
           {!isServiceActive && (
-            <div className="mb-3 rounded-lg bg-yellow-50 p-3 text-sm text-yellow-800">
-              <p className="font-semibold">⚠️ Chatbot service is not running</p>
-              <p className="mt-1 text-xs">
-                Please start the Flask server: <code className="rounded bg-yellow-100 px-1">cd frontend/src/pages/Chatbot && python app.py</code>
-              </p>
+            <div className="mb-3 flex items-start gap-3 rounded-xl bg-amber-50 p-4 border border-amber-200">
+              <svg className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <p className="text-sm font-semibold text-amber-900">Service Unavailable</p>
+                <p className="mt-1 text-xs text-amber-700">
+                  The chatbot service is currently offline. Please start it with: 
+                  <code className="ml-1 rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs">python app.py</code>
+                </p>
+              </div>
             </div>
           )}
           
-          <div className="flex items-end gap-2">
+          <div className="flex items-end gap-3">
             <div className="flex-1">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type your question here..."
-                className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-[#e50914] focus:outline-none focus:ring-2 focus:ring-[#e50914]/20"
-                rows={1}
-                disabled={isLoading || !isServiceActive}
-              />
+              <div className="relative">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Type your message here..."
+                  className="w-full resize-none rounded-2xl border-2 border-gray-200 bg-gray-50 px-5 py-3.5 pr-12 text-sm text-gray-800 placeholder-gray-400 transition-all focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                  rows={1}
+                  disabled={isLoading || !isServiceActive}
+                  style={{ minHeight: '52px', maxHeight: '120px' }}
+                />
+                {/* Character hint */}
+                {input.length > 0 && (
+                  <div className="absolute bottom-2 right-3 text-xs text-gray-400">
+                    {input.length}
+                  </div>
+                )}
+              </div>
             </div>
             <button
               onClick={handleSend}
               disabled={isLoading || !input.trim() || !isServiceActive}
-              className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-[#e50914] to-[#b00020] text-white shadow-md transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-lg transition-all hover:shadow-xl hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             >
               {isLoading ? (
                 <svg
@@ -261,15 +306,38 @@ export default function ChatbotWidget() {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
+                    strokeWidth={2.5}
                     d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                   />
                 </svg>
               )}
             </button>
           </div>
+          
+          {/* Powered by notice */}
+          <div className="mt-3 text-center">
+            <p className="text-xs text-gray-400">
+              Powered by AI • CampusConnect 2026
+            </p>
+          </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
