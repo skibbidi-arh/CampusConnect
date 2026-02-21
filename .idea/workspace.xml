@@ -6,9 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="40815e79-6bdc-4f1d-a563-2a8a5ee44f50" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/pages/MedicalSupport/components/BloodBank.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/MedicalSupport/components/BloodBank.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/pages/MedicalSupport/components/BloodRequests.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/MedicalSupport/components/BloodRequests.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/pages/RoommateWanted/components/PostRoommateForm.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/RoommateWanted/components/PostRoommateForm.jsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,7 +68,9 @@
       <workItem from="1769514748938" duration="156000" />
       <workItem from="1769517489880" duration="802000" />
       <workItem from="1769572057427" duration="2264000" />
-      <workItem from="1769574478379" duration="1974000" />
+      <workItem from="1769574478379" duration="2324000" />
+      <workItem from="1769584978062" duration="742000" />
+      <workItem from="1771683714763" duration="299000" />
     </task>
     <servers />
   </component>
