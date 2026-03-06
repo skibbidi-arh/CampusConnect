@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import GoBackButton from '../../components/GoBackButton';
 
 const CATEGORIES = [
     'Home items',
@@ -74,11 +75,18 @@ export default function CreateMarketplacePost() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-gray-50">
-            <Header />
-            <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto w-full">
-                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
-                    <h1 className="text-2xl font-bold text-[#8b0018] mb-6">Post an Item for Sale</h1>
+        <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+            <Header showMenuButton={false} />
+            <main className="container mx-auto flex-1 p-4 sm:p-6 lg:p-8">
+                <div className="mx-auto max-w-3xl">
+                    <div className="mb-6 flex items-center gap-4">
+                        <GoBackButton />
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">Post an Item for Sale</h1>
+                            <p className="mt-1 text-sm text-gray-600">List your item on the campus marketplace</p>
+                        </div>
+                    </div>
+                    <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="form-control w-full">
@@ -142,10 +150,11 @@ export default function CreateMarketplacePost() {
                             )}
                         </div>
 
-                        <button type="submit" disabled={loading} className="btn bg-[#8b0018] hover:bg-[#b00020] text-white w-full mt-4">
+                        <button type="submit" disabled={loading} className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none w-full mt-4 shadow-md">
                             {loading ? <span className="loading loading-spinner"></span> : 'Post Item'}
                         </button>
                     </form>
+                    </div>
                 </div>
             </main>
             <Footer />

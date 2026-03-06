@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import GoBackButton from '../../components/GoBackButton';
 
 const BASE_URL = 'http://localhost:4000/api/marketplace';
 
@@ -62,10 +63,10 @@ export default function MarketplaceItemDetails() {
 
     if (loading) {
         return (
-            <div className="flex min-h-screen flex-col bg-gray-50">
-                <Header />
+            <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+                <Header showMenuButton={false} />
                 <main className="flex-1 flex items-center justify-center">
-                    <span className="loading loading-spinner loading-lg text-[#8b0018]"></span>
+                    <span className="loading loading-spinner loading-lg text-[#e50914]"></span>
                 </main>
                 <Footer />
             </div>
@@ -77,14 +78,15 @@ export default function MarketplaceItemDetails() {
     const isSeller = currentUserId === post.sellerId;
 
     return (
-        <div className="flex min-h-screen flex-col bg-gray-50">
-            <Header />
-            <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto w-full">
-                <button onClick={() => navigate('/marketplace')} className="btn btn-ghost mb-4 text-[#8b0018] hover:bg-red-50">
-                    &larr; Back to Marketplace
-                </button>
+        <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+            <Header showMenuButton={false} />
+            <main className="container mx-auto flex-1 p-4 sm:p-6 lg:p-8">
+                <div className="mx-auto max-w-4xl">
+                    <div className="mb-6">
+                        <GoBackButton />
+                    </div>
 
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                    <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                     <div className="md:flex">
                         {/* Image Section */}
                         <div className="md:w-1/2 bg-gray-100 flex items-center justify-center p-8 min-h-[300px]">
@@ -147,7 +149,7 @@ export default function MarketplaceItemDetails() {
                                         <button
                                             onClick={handlePaymentDone}
                                             disabled={actionLoading}
-                                            className="btn bg-[#8b0018] hover:bg-[#b00020] text-white w-full shadow-lg"
+                                            className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none w-full shadow-lg"
                                         >
                                             {actionLoading ? <span className="loading loading-spinner"></span> : 'Mark Payment as Done'}
                                         </button>
@@ -160,6 +162,7 @@ export default function MarketplaceItemDetails() {
                                 )}
                             </div>
                         </div>
+                    </div>
                     </div>
                 </div>
             </main>
