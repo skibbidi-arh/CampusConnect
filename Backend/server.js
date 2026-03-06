@@ -13,6 +13,7 @@ const feedBackRoutes = require('./routes/feedbackRoutes.js')
 const societyRoutes = require('./routes/society.routes.js')
 const eventRoutes = require('./routes/event.routes.js')
 const administratorRoutes = require('./routes/administrator.routes.js')
+const marketplaceRoutes = require('./routes/marketplace.routes.js')
 const httpproxy = require('http-proxy')
 
 
@@ -49,6 +50,7 @@ app.use('/anonymous/api/feedback', feedBackRoutes)
 app.use('/api', societyRoutes)
 app.use('/api', eventRoutes)
 app.use('/api/administrator', administratorRoutes)
+app.use('/api/marketplace', marketplaceRoutes)
 
 
 

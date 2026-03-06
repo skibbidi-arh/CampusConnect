@@ -13,6 +13,12 @@ import CategoryFeedback from './pages/Anonymous/pages/CategoryFeedback'
 import Home from './pages/Anonymous/pages/Home'
 import Administrator from './pages/Administrator'
 
+// Marketplace
+import MarketplaceFeed from './pages/Marketplace/index'
+import CreateMarketplacePost from './pages/Marketplace/CreatePost'
+import MyMarketplacePosts from './pages/Marketplace/MyPosts'
+import MarketplaceItemDetails from './pages/Marketplace/ItemDetails'
+
 // 1. FIXED Layout component with a container
 const AnonymousLayout = () => (
   <Outlet />
@@ -56,7 +62,13 @@ function App() {
         <Route path="/chatbot" element={<ChatbotPage />} />
         <Route path="/lost-found" element={<LostFound />} />
         <Route path="/feedback" element={<Dashboard />} />
-        <Route path="/marketplace" element={<Dashboard />} />
+
+        {/* Marketplace Routes */}
+        <Route path="/marketplace" element={<MarketplaceFeed />} />
+        <Route path="/marketplace/create" element={<CreateMarketplacePost />} />
+        <Route path="/marketplace/my-posts" element={<MyMarketplacePosts />} />
+        <Route path="/marketplace/:id" element={<MarketplaceItemDetails />} />
+
         <Route path="/accommodation" element={<RoommateWanted />} />
         <Route path="/societies" element={<Societies />} />
         <Route path="/societies/:id" element={<SocietyPage />} />
