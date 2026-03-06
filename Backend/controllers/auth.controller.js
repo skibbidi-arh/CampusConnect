@@ -21,13 +21,13 @@ exports.googleSignin = async (req, res) => {
 
         const domain = userEmail.split('@').pop();
 
-        if (domain !== REQUIRED_DOMAIN) {
-            await adminAuth.revokeRefreshTokens(firebaseUID);
-            return res.status(403).json({
-                error: 'Unauthorized Domain',
-                message: `Only @${REQUIRED_DOMAIN} email allowed.`,
-            });
-        }
+        // if (domain !== REQUIRED_DOMAIN) {
+        //     await adminAuth.revokeRefreshTokens(firebaseUID);
+        //     return res.status(403).json({
+        //         error: 'Unauthorized Domain',
+        //         message: `Only @${REQUIRED_DOMAIN} email allowed.`,
+        //     });
+        // }
 
         const token = await generateJWT.generate(decodedToken, res);
         console.log("Generated JWT:", token);
