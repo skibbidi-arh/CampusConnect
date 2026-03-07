@@ -87,7 +87,23 @@ export default function MyOrders() {
 
                                         {order.preOrder && (
                                             <div className="mb-3">
-                                                {order.preOrder.verified ? (
+                                                {order.preOrder.collected ? (
+                                                    <div className="space-y-2">
+                                                        <div className="badge badge-success w-full py-3 gap-1">
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                                            </svg>
+                                                            Order Collected
+                                                        </div>
+                                                        {order.preOrder.collectedAt && (
+                                                            <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-xs">
+                                                                <p className="text-green-800 font-medium">
+                                                                    Confirmed on: {new Date(order.preOrder.collectedAt).toLocaleDateString()} at {new Date(order.preOrder.collectedAt).toLocaleTimeString()}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : order.preOrder.verified ? (
                                                     order.productStatus === 'ready' ? (
                                                         <div className="space-y-2">
                                                             <div className="badge badge-success w-full py-3 gap-1">

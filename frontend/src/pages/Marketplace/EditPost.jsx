@@ -29,6 +29,8 @@ export default function EditMarketplacePost() {
         image: '',
         preOrderEnabled: false
     });
+    const [sizeSpecifications, setSizeSpecifications] = useState([]);
+    const [newSize, setNewSize] = useState({ size: '', measurement: '' });
     const [loading, setLoading] = useState(false);
     const [fetchingPost, setFetchingPost] = useState(true);
     const [originalImage, setOriginalImage] = useState('');
@@ -67,6 +69,7 @@ export default function EditMarketplacePost() {
                     image: post.images?.[0] || '',
                     preOrderEnabled: post.preOrderEnabled || false
                 });
+                setSizeSpecifications(post.sizeSpecifications || []);
                 setOriginalImage(post.images?.[0] || '');
             }
         } catch (error) {
@@ -99,8 +102,29 @@ export default function EditMarketplacePost() {
         }
     };
 
+    const handleAddSize = () => {
+        if (!newSize.size || !newSize.measurement) {
+            toast.error('Please fill in all size specification fields');
+            return;
+        }
+        setSizeSpecifications([...sizeSpecifications, { ...newSize }]);
+        setNewSize({ size: '', measurement: '' });
+        toast.success('Size added successfully');
+    };
+
+    const handleRemoveSize = (index) => {
+        setSizeSpecifications(sizeSpecifications.filter((_, i) => i !== index));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validate size specifications for clothing category
+        if (formData.category === 'Clothing' && sizeSpecifications.length === 0) {
+            const shouldContinue = window.confirm('You have not added any size specifications for this clothing item. Do you want to continue anyway?');
+            if (!shouldContinue) return;
+        }
+
         try {
             setLoading(true);
             const token = sessionStorage.getItem('authToken');
@@ -110,7 +134,11 @@ export default function EditMarketplacePost() {
                 return;
             }
 
-            const payload = { ...formData, images: formData.image ? [formData.image] : [] };
+            const payload = { 
+                ...formData, 
+                images: formData.image ? [formData.image] : [],
+                sizeSpecifications: formData.category === 'Clothing' ? sizeSpecifications : []
+            };
 
             const config = { headers: { Authorization: `Bearer ${token}` } };
             const res = await axios.put(`${BASE_URL}/${id}`, payload, config);
@@ -198,6 +226,68 @@ export default function EditMarketplacePost() {
                                 </div>
                             </label>
                         </div>
+
+                        {/* Size Specifications for Clothing */}
+                        {formData.category === 'Clothing' && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
+                                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    Size Specifications
+                                </h3>
+                                <p className="text-sm text-gray-600 mb-4">Add size specifications for your clothing item (e.g., XL - 42 inches, 2XL - 44 inches)</p>
+
+                                {/* Add Size Form */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                                    <input
+                                        type="text"
+                                        placeholder="Size (e.g., XL, 2XL, M)"
+                                        value={newSize.size}
+                                        onChange={(e) => setNewSize({ ...newSize, size: e.target.value })}
+                                        className="input input-sm input-bordered focus:border-[#8b0018] w-full"
+                                    />
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Measurement (e.g., 42 inches)"
+                                            value={newSize.measurement}
+                                            onChange={(e) => setNewSize({ ...newSize, measurement: e.target.value })}
+                                            className="input input-sm input-bordered focus:border-[#8b0018] w-full"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleAddSize}
+                                            className="btn btn-sm bg-[#8b0018] hover:bg-[#b00020] text-white border-none"
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Display Added Sizes */}
+                                {sizeSpecifications.length > 0 && (
+                                    <div className="space-y-2">
+                                        <p className="text-sm font-medium text-gray-700">Added Sizes:</p>
+                                        {sizeSpecifications.map((spec, index) => (
+                                            <div key={index} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200">
+                                                <div className="flex gap-4 text-sm">
+                                                    <span className="font-semibold">{spec.size}</span>
+                                                    <span className="text-gray-600">{spec.measurement}</span>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveSize(index)}
+                                                    className="btn btn-xs btn-ghost text-red-600 hover:bg-red-50"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <div className="form-control w-full mb-6">
                             <label className="label"><span className="label-text font-medium text-gray-700">Upload Image</span></label>

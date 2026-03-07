@@ -17,12 +17,17 @@ export default function MarketplaceItemDetails() {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [verifyLoading, setVerifyLoading] = useState(null); // Track which pre-order is being verified
+    const [collectLoading, setCollectLoading] = useState(null); // Track which pre-order is being marked collected
     const [markReadyLoading, setMarkReadyLoading] = useState(false);
+    const [togglePreOrderLoading, setTogglePreOrderLoading] = useState(false);
     const [transactionId, setTransactionId] = useState('');
     const [userPreOrder, setUserPreOrder] = useState(null);
     const [showPreOrderModal, setShowPreOrderModal] = useState(false);
     const [showCollectionModal, setShowCollectionModal] = useState(false);
     const [collectionLocation, setCollectionLocation] = useState('');
+    const [selectedSize, setSelectedSize] = useState('');
+    const [quantity, setQuantity] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const currentUserId = User?.users_id;
 
@@ -60,16 +65,36 @@ export default function MarketplaceItemDetails() {
             toast.error('Please enter your bKash transaction ID');
             return;
         }
+        
+        // Validate size if size specifications exist
+        if (post.sizeSpecifications && post.sizeSpecifications.length > 0 && !selectedSize) {
+            toast.error('Please select a size');
+            return;
+        }
+
+        if (quantity < 1) {
+            toast.error('Quantity must be at least 1');
+            return;
+        }
+
         try {
             setActionLoading(true);
             const token = sessionStorage.getItem('authToken');
             const config = { headers: { Authorization: `Bearer ${token}` } };
 
-            const res = await axios.post(`${BASE_URL}/${id}/pre-order`, { transactionId }, config);
+            const payload = { 
+                transactionId,
+                selectedSize: selectedSize || null,
+                quantity: quantity
+            };
+
+            const res = await axios.post(`${BASE_URL}/${id}/pre-order`, payload, config);
             if (res.data.success) {
                 toast.success('Pre-order submitted successfully! Waiting for verification.');
                 fetchPost(); // Refresh to get updated data
                 setTransactionId('');
+                setSelectedSize('');
+                setQuantity(1);
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to submit pre-order');
@@ -90,6 +115,21 @@ export default function MarketplaceItemDetails() {
             toast.error(error.response?.data?.message || 'Failed to verify pre-order');
         } finally {
             setVerifyLoading(null);
+        }
+    };
+
+    const handleMarkCollected = async (preOrderId, isCollected) => {
+        try {
+            setCollectLoading(preOrderId);
+            const token = sessionStorage.getItem('authToken');
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+            await axios.put(`${BASE_URL}/${id}/pre-order/${preOrderId}/collect`, {}, config);
+            toast.success(isCollected ? 'Marked as not collected' : 'Marked as collected!');
+            fetchPost(); // Refresh to get updated data
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update collection status');
+        } finally {
+            setCollectLoading(null);
         }
     };
 
@@ -116,6 +156,21 @@ export default function MarketplaceItemDetails() {
             toast.error(error.response?.data?.message || 'Failed to mark product as ready');
         } finally {
             setMarkReadyLoading(false);
+        }
+    };
+
+    const handleTogglePreOrder = async () => {
+        try {
+            setTogglePreOrderLoading(true);
+            const token = sessionStorage.getItem('authToken');
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+            const res = await axios.put(`${BASE_URL}/${id}/toggle-preorder`, {}, config);
+            toast.success(res.data.message);
+            fetchPost(); // Refresh to get updated data
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update pre-order status');
+        } finally {
+            setTogglePreOrderLoading(false);
         }
     };
 
@@ -201,6 +256,28 @@ export default function MarketplaceItemDetails() {
                                 <p>{post.description}</p>
                             </div>
 
+                            {/* Size Specifications Display */}
+                            {post.sizeSpecifications && post.sizeSpecifications.length > 0 && (
+                                <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6">
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                        </svg>
+                                        Available Sizes
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {post.sizeSpecifications.map((spec, index) => (
+                                            <div key={index} className="bg-white rounded-lg p-3 border border-indigo-200">
+                                                <div>
+                                                    <span className="font-bold text-lg text-gray-900">{spec.size}</span>
+                                                    <p className="text-sm text-gray-600 mt-1">{spec.measurement}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-3">
                                 <div className="flex items-center text-gray-700">
                                     <span className="font-semibold w-32">Username:</span>
@@ -247,17 +324,80 @@ export default function MarketplaceItemDetails() {
                                                         </p>
                                                         <p className="text-gray-700 text-sm">{post.collectionLocation}</p>
                                                     </div>
-                                                )}                                                <button
+                                                )}
+                                                {post.preOrderStopped && (
+                                                    <div className="bg-orange-50 border border-orange-300 rounded-lg p-4 mb-3">
+                                                        <p className="font-semibold text-orange-900 text-sm flex items-center gap-2">
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                            </svg>
+                                                            Pre-orders are currently stopped
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                <button
                                                     onClick={() => setShowPreOrderModal(true)}
                                                     className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none w-full shadow-lg"
                                                 >
                                                     View Pre-Orders ({post.preOrders?.length || 0})
                                                 </button>
+                                                <button
+                                                    onClick={handleTogglePreOrder}
+                                                    disabled={togglePreOrderLoading}
+                                                    className={`btn btn-outline w-full ${
+                                                        post.preOrderStopped 
+                                                            ? 'btn-success' 
+                                                            : 'btn-warning'
+                                                    }`}
+                                                >
+                                                    {togglePreOrderLoading ? (
+                                                        <span className="loading loading-spinner loading-sm"></span>
+                                                    ) : post.preOrderStopped ? (
+                                                        <>
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                            </svg>
+                                                            Resume Pre-Orders
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                            </svg>
+                                                            Stop Pre-Orders
+                                                        </>
+                                                    )}
+                                                </button>
                                             </div>
                                         ) : userPreOrder ? (
                                             // User has submitted a pre-order
                                             <div className="space-y-3">
-                                                {userPreOrder.verified && post.productStatus === 'ready' ? (
+                                                {userPreOrder.collected ? (
+                                                    // Order marked as collected by seller
+                                                    <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4">
+                                                        <div className="font-bold flex items-center justify-center gap-2 mb-3">
+                                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                                            </svg>
+                                                            Order Collected!
+                                                        </div>
+                                                        <p className="text-sm text-center mb-2">
+                                                            This order has been marked as collected.
+                                                        </p>
+                                                        {userPreOrder.collectedAt && (
+                                                            <p className="text-xs text-center text-green-600 font-medium">
+                                                                Collected on: {new Date(userPreOrder.collectedAt).toLocaleString()}
+                                                            </p>
+                                                        )}
+                                                        <div className="bg-white border border-green-300 rounded-lg p-3 mt-3">
+                                                            <p className="text-sm text-gray-700">
+                                                                <span className="font-medium">Transaction ID:</span> 
+                                                                <span className="font-mono ml-1">{userPreOrder.transactionId}</span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ) : userPreOrder.verified && post.productStatus === 'ready' ? (
                                                     // Product is verified and ready - show collection notice only
                                                     <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4">
                                                         <div className="font-bold flex items-center justify-center gap-2 mb-3">
@@ -290,6 +430,12 @@ export default function MarketplaceItemDetails() {
                                                                 )}
                                                             </div>
                                                             <p className="text-sm mb-1">Transaction ID: <span className="font-mono font-semibold">{userPreOrder.transactionId}</span></p>
+                                                            {userPreOrder.selectedSize && (
+                                                                <p className="text-sm mb-1">Size: <span className="font-semibold">{userPreOrder.selectedSize}</span></p>
+                                                            )}
+                                                            {userPreOrder.quantity && (
+                                                                <p className="text-sm mb-1">Quantity: <span className="font-semibold">{userPreOrder.quantity}</span> <span className="text-xs">(Total: ৳{(post.price * userPreOrder.quantity).toFixed(2)})</span></p>
+                                                            )}
                                                             {!userPreOrder.verified && (
                                                                 <p className="text-xs mt-2">Waiting for seller to verify your payment.</p>
                                                             )}
@@ -311,35 +457,91 @@ export default function MarketplaceItemDetails() {
                                         ) : (
                                             // Pre-order form for buyers
                                             !isSeller && (
-                                                <form onSubmit={handlePreOrderSubmit} className="space-y-3">
-                                                    <div className="bg-blue-50 border border-blue-300 rounded-lg p-4 text-blue-900">
-                                                        <h3 className="font-bold mb-2 flex items-center gap-2">
-                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                            Pre-Order Available
-                                                        </h3>
-                                                        <p className="text-sm">Pay ৳{post.price} via bKash to <strong>{post.phone_number}</strong>, then enter your transaction ID below.</p>
+                                                post.preOrderStopped ? (
+                                                    // Pre-orders stopped message
+                                                    <div className="bg-orange-50 border border-orange-300 rounded-lg p-4 text-orange-900">
+                                                        <div className="font-bold flex items-center justify-center gap-2 mb-2">
+                                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                            </svg>
+                                                            Pre-Orders Closed
+                                                        </div>
+                                                        <p className="text-sm text-center">
+                                                            The seller is no longer accepting pre-orders for this item.
+                                                        </p>
                                                     </div>
-                                                    <div className="form-control">
-                                                        <label className="label">
-                                                            <span className="label-text font-medium">bKash Transaction ID</span>
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            value={transactionId}
-                                                            onChange={(e) => setTransactionId(e.target.value)}
-                                                            placeholder="Enter transaction ID"
-                                                            className="input input-bordered focus:border-[#8b0018] w-full"
-                                                            required
-                                                        />
-                                                    </div>
-                                                    <button
-                                                        type="submit"
-                                                        disabled={actionLoading}
-                                                        className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none w-full shadow-lg"
-                                                    >
-                                                        {actionLoading ? <span className="loading loading-spinner"></span> : 'Submit Pre-Order'}
-                                                    </button>
-                                                </form>
+                                                ) : (
+                                                    <form onSubmit={handlePreOrderSubmit} className="space-y-3">
+                                                        <div className="bg-blue-50 border border-blue-300 rounded-lg p-4 text-blue-900">
+                                                            <h3 className="font-bold mb-2 flex items-center gap-2">
+                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                                Pre-Order Available
+                                                            </h3>
+                                                            <p className="text-sm">Pay ৳{post.price} via bKash to <strong>{post.phone_number}</strong>, then enter your transaction ID below.</p>
+                                                        </div>
+
+                                                        {/* Size Selection */}
+                                                        {post.sizeSpecifications && post.sizeSpecifications.length > 0 && (
+                                                            <div className="form-control">
+                                                                <label className="label">
+                                                                    <span className="label-text font-medium">Select Size</span>
+                                                                </label>
+                                                                <select
+                                                                    value={selectedSize}
+                                                                    onChange={(e) => setSelectedSize(e.target.value)}
+                                                                    className="select select-bordered focus:border-[#8b0018] w-full"
+                                                                    required
+                                                                >
+                                                                    <option value="">Choose a size...</option>
+                                                                    {post.sizeSpecifications.map((spec, index) => (
+                                                                        <option key={index} value={spec.size}>
+                                                                            {spec.size} - {spec.measurement}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Quantity Selection */}
+                                                        <div className="form-control">
+                                                            <label className="label">
+                                                                <span className="label-text font-medium">Quantity</span>
+                                                            </label>
+                                                            <input
+                                                                type="number"
+                                                                min="1"
+                                                                value={quantity}
+                                                                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                                                                className="input input-bordered focus:border-[#8b0018] w-full"
+                                                                required
+                                                            />
+                                                            <label className="label">
+                                                                <span className="label-text-alt text-gray-500">Total: ৳{(post.price * quantity).toFixed(2)}</span>
+                                                            </label>
+                                                        </div>
+
+                                                        <div className="form-control">
+                                                            <label className="label">
+                                                                <span className="label-text font-medium">bKash Transaction ID</span>
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                value={transactionId}
+                                                                onChange={(e) => setTransactionId(e.target.value)}
+                                                                placeholder="Enter transaction ID"
+                                                                className="input input-bordered focus:border-[#8b0018] w-full"
+                                                                required
+                                                            />
+                                                        </div>
+                                                        <button
+                                                            type="submit"
+                                                            disabled={actionLoading}
+                                                            className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none w-full shadow-lg"
+                                                        >
+                                                            {actionLoading ? <span className="loading loading-spinner"></span> : 'Submit Pre-Order'}
+                                                        </button>
+                                                    </form>
+                                                )
                                             )
                                         )}
                                     </>
@@ -369,51 +571,193 @@ export default function MarketplaceItemDetails() {
             {/* Pre-Order Modal */}
             {showPreOrderModal && (
                 <div className="modal modal-open">
-                    <div className="modal-box max-w-3xl">
+                    <div className="modal-box max-w-4xl">
                         <h3 className="font-bold text-xl mb-4 text-gray-900">Pre-Order Management</h3>
                         
                         {post.preOrders && post.preOrders.length > 0 ? (
-                            <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-                                {post.preOrders.map(preOrder => (
-                                    <div key={preOrder._id} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex-1">
-                                                <p className="font-semibold text-gray-800 text-lg">{preOrder.userName}</p>
-                                                <p className="text-sm text-gray-600 mt-2">
-                                                    <span className="font-medium">Transaction ID:</span> 
-                                                    <span className="font-mono font-semibold ml-2 bg-white px-2 py-1 rounded">{preOrder.transactionId}</span>
-                                                </p>
-                                                <p className="text-xs text-gray-500 mt-2">
-                                                    {new Date(preOrder.createdAt).toLocaleString()}
-                                                </p>
-                                            </div>
-                                            <div className="ml-4">
-                                                {preOrder.verified ? (
-                                                    <span className="badge badge-success badge-lg">✓ Verified</span>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => handleVerifyPreOrder(preOrder._id)}
-                                                        disabled={verifyLoading === preOrder._id}
-                                                        className="btn btn-success text-white"
-                                                    >
-                                                        {verifyLoading === preOrder._id ? (
-                                                            <span className="loading loading-spinner loading-sm"></span>
-                                                        ) : (
-                                                            'Verify'
+                            (() => {
+                                // Filter pre-orders based on search query
+                                const filteredPreOrders = post.preOrders.filter(preOrder => {
+                                    if (!searchQuery.trim()) return true;
+                                    const query = searchQuery.toLowerCase();
+                                    const userName = (preOrder.userName || '').toLowerCase();
+                                    const userEmail = (preOrder.userEmail || '').toLowerCase();
+                                    const transactionId = (preOrder.transactionId || '').toLowerCase();
+                                    return userName.includes(query) || userEmail.includes(query) || transactionId.includes(query);
+                                });
+                                
+                                return (
+                            <>
+                                {/* Search Bar */}
+                                <div className="mb-4">
+                                    <div className="relative">
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder="Search by name, email, or transaction ID..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="input input-bordered w-full pl-10 pr-10 focus:border-[#8b0018]"
+                                        />
+                                        {searchQuery && (
+                                            <button
+                                                onClick={() => setSearchQuery('')}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                title="Clear search"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                    {searchQuery && (
+                                        <p className="text-xs text-gray-500 mt-2">
+                                            Found {filteredPreOrders.length} of {post.preOrders.length} orders
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Summary Stats */}
+                                <div className="grid grid-cols-3 gap-3 mb-6">
+                                    <div className="bg-blue-50 p-3 rounded-lg text-center">
+                                        <p className="text-2xl font-bold text-blue-600">{post.preOrders.length}</p>
+                                        <p className="text-xs text-gray-600">Total Orders</p>
+                                    </div>
+                                    <div className="bg-green-50 p-3 rounded-lg text-center">
+                                        <p className="text-2xl font-bold text-green-600">
+                                            {post.preOrders.filter(po => po.verified).length}
+                                        </p>
+                                        <p className="text-xs text-gray-600">Verified</p>
+                                    </div>
+                                    <div className="bg-green-50 p-3 rounded-lg text-center">
+                                        <p className="text-2xl font-bold text-green-600">
+                                            {post.preOrders.filter(po => po.collected).length}
+                                        </p>
+                                        <p className="text-xs text-gray-600">Collected</p>
+                                    </div>
+                                </div>
+
+                                {/* Orders List */}
+                                <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+                                    {filteredPreOrders.length > 0 ? (
+                                        filteredPreOrders.map(preOrder => (
+                                        <div 
+                                            key={preOrder._id} 
+                                            className={`p-4 rounded-lg border-2 ${
+                                                preOrder.collected 
+                                                    ? 'bg-green-50 border-green-300' 
+                                                    : preOrder.verified 
+                                                        ? 'bg-blue-50 border-blue-200' 
+                                                        : 'bg-gray-50 border-gray-200'
+                                            }`}
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <div>
+                                                            <p className="font-semibold text-gray-800 text-lg">{preOrder.userName}</p>
+                                                            {preOrder.userEmail && (
+                                                                <p className="text-xs text-gray-500">{preOrder.userEmail}</p>
+                                                            )}
+                                                        </div>
+                                                        {preOrder.collected && (
+                                                            <span className="badge badge-success badge-sm">✓ Collected</span>
                                                         )}
-                                                    </button>
-                                                )}
+                                                    </div>
+                                                    <p className="text-sm text-gray-600 mt-2">
+                                                        <span className="font-medium">Transaction ID:</span> 
+                                                        <span className="font-mono font-semibold ml-2 bg-white px-2 py-1 rounded">{preOrder.transactionId}</span>
+                                                    </p>
+                                                    {preOrder.selectedSize && (
+                                                        <p className="text-sm text-gray-600 mt-2">
+                                                            <span className="font-medium">Size:</span> 
+                                                            <span className="ml-2 font-semibold">{preOrder.selectedSize}</span>
+                                                        </p>
+                                                    )}
+                                                    {preOrder.quantity && (
+                                                        <p className="text-sm text-gray-600 mt-2">
+                                                            <span className="font-medium">Quantity:</span> 
+                                                            <span className="ml-2 font-semibold">{preOrder.quantity}</span>
+                                                            <span className="text-xs text-gray-500 ml-2">(Total: ৳{(post.price * preOrder.quantity).toFixed(2)})</span>
+                                                        </p>
+                                                    )}
+                                                    <p className="text-xs text-gray-500 mt-2">
+                                                        Ordered: {new Date(preOrder.createdAt).toLocaleString()}
+                                                    </p>
+                                                    {preOrder.collected && preOrder.collectedAt && (
+                                                        <p className="text-xs text-green-600 mt-1 font-medium">
+                                                            Collected: {new Date(preOrder.collectedAt).toLocaleString()}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div className="ml-4 flex flex-col gap-2">
+                                                    {!preOrder.verified ? (
+                                                        <button
+                                                            onClick={() => handleVerifyPreOrder(preOrder._id)}
+                                                            disabled={verifyLoading === preOrder._id}
+                                                            className="btn btn-success btn-sm text-white"
+                                                        >
+                                                            {verifyLoading === preOrder._id ? (
+                                                                <span className="loading loading-spinner loading-xs"></span>
+                                                            ) : (
+                                                                'Verify Payment'
+                                                            )}
+                                                        </button>
+                                                    ) : (
+                                                        <>
+                                                            <span className="badge badge-success">✓ Verified</span>
+                                                            {post.productStatus === 'ready' && (
+                                                                <button
+                                                                    onClick={() => handleMarkCollected(preOrder._id, preOrder.collected)}
+                                                                    disabled={collectLoading === preOrder._id}
+                                                                    className={`btn btn-sm ${
+                                                                        preOrder.collected 
+                                                                            ? 'btn-outline btn-warning' 
+                                                                            : 'btn-outline btn-primary bg-blue-50 hover:bg-blue-100'
+                                                                    }`}
+                                                                >
+                                                                    {collectLoading === preOrder._id ? (
+                                                                        <span className="loading loading-spinner loading-xs"></span>
+                                                                    ) : preOrder.collected ? (
+                                                                        'Undo'
+                                                                    ) : (
+                                                                        'Mark Collected'
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))
+                                    ) : (
+                                        <div className="text-center py-8 text-gray-500">
+                                            <svg className="w-16 h-16 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                            </svg>
+                                            <p className="font-medium">No orders found</p>
+                                            <p className="text-sm">Try a different search term</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                                );
+                            })()
                         ) : (
                             <p className="text-gray-600 text-center py-8">No pre-orders yet.</p>
                         )}
                         
                         <div className="modal-action">
-                            <button onClick={() => setShowPreOrderModal(false)} className="btn">Close</button>
+                            <button onClick={() => {
+                                setShowPreOrderModal(false);
+                                setSearchQuery(''); // Reset search when closing
+                            }} className="btn">Close</button>
                         </div>
                     </div>
                     <div className="modal-backdrop" onClick={() => setShowPreOrderModal(false)}></div>

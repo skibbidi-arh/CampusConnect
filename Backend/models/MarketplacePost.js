@@ -1,5 +1,16 @@
 const mongoose = require('mongoose');
 
+const sizeSpecificationSchema = new mongoose.Schema({
+  size: {
+    type: String,
+    required: true
+  },
+  measurement: {
+    type: String,
+    required: true
+  }
+});
+
 const preOrderSchema = new mongoose.Schema({
   userId: {
     type: Number,
@@ -9,13 +20,34 @@ const preOrderSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  userEmail: {
+    type: String,
+    required: true
+  },
   transactionId: {
     type: String,
     required: true
   },
+  selectedSize: {
+    type: String,
+    default: null
+  },
+  quantity: {
+    type: Number,
+    default: 1,
+    min: 1
+  },
   verified: {
     type: Boolean,
     default: false
+  },
+  collected: {
+    type: Boolean,
+    default: false
+  },
+  collectedAt: {
+    type: Date,
+    default: null
   },
   createdAt: {
     type: Date,
@@ -70,8 +102,17 @@ const marketplacePostSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // Size specifications for clothing items
+  sizeSpecifications: {
+    type: [sizeSpecificationSchema],
+    default: []
+  },
   // Pre-order fields
   preOrderEnabled: {
+    type: Boolean,
+    default: false
+  },
+  preOrderStopped: {
     type: Boolean,
     default: false
   },

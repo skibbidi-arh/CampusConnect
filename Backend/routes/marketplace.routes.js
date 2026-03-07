@@ -9,7 +9,9 @@ const {
     deletePost,
     submitPreOrder,
     verifyPreOrder,
+    markPreOrderCollected,
     markProductReady,
+    togglePreOrder,
     getPreOrders,
     getMyOrders
 } = require('../controllers/marketplaceController');
@@ -50,8 +52,16 @@ router.route('/:id/pre-orders')
 router.route('/:id/pre-order/:preOrderId/verify')
     .put(verifyPreOrder);
 
+// /api/marketplace/:id/pre-order/:preOrderId/collect
+router.route('/:id/pre-order/:preOrderId/collect')
+    .put(markPreOrderCollected);
+
 // /api/marketplace/:id/mark-ready
 router.route('/:id/mark-ready')
     .put(markProductReady);
+
+// /api/marketplace/:id/toggle-preorder
+router.route('/:id/toggle-preorder')
+    .put(togglePreOrder);
 
 module.exports = router;
