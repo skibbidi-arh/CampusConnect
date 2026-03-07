@@ -16,6 +16,7 @@ import Administrator from './pages/Administrator'
 // Marketplace
 import MarketplaceFeed from './pages/Marketplace/index'
 import CreateMarketplacePost from './pages/Marketplace/CreatePost'
+import EditMarketplacePost from './pages/Marketplace/EditPost'
 import MyMarketplacePosts from './pages/Marketplace/MyPosts'
 import MyMarketplaceOrders from './pages/Marketplace/MyOrders'
 import MarketplaceItemDetails from './pages/Marketplace/ItemDetails'
@@ -67,6 +68,7 @@ function App() {
         {/* Marketplace Routes */}
         <Route path="/marketplace" element={<MarketplaceFeed />} />
         <Route path="/marketplace/create" element={<CreateMarketplacePost />} />
+        <Route path="/marketplace/edit/:id" element={<EditMarketplacePost />} />
         <Route path="/marketplace/my-posts" element={<MyMarketplacePosts />} />
         <Route path="/marketplace/my-orders" element={<MyMarketplaceOrders />} />
         <Route path="/marketplace/:id" element={<MarketplaceItemDetails />} />

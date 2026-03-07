@@ -63,7 +63,7 @@ export default function MyOrders() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {orders.map(order => (
                                 <div key={order.postId} className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow border border-gray-200">
-                                    {order.images && order.images.length > 0 && (
+                                    {order.images && order.images.length > 0 ? (
                                         <figure className="h-48 bg-gray-100">
                                             <img 
                                                 src={order.images[0]} 
@@ -71,72 +71,67 @@ export default function MyOrders() {
                                                 className="w-full h-full object-contain"
                                             />
                                         </figure>
+                                    ) : (
+                                        <figure className="h-48 bg-gray-100 flex items-center justify-center">
+                                            <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                        </figure>
                                     )}
                                     <div className="card-body p-5">
-                                        <h2 className="card-title text-lg font-bold text-gray-800">{order.title}</h2>
-                                        <p className="text-gray-500 text-sm mb-2">৳ {order.price} • {order.category}</p>
-
-                                        <div className="bg-gray-50 rounded-lg p-3 text-sm mb-3 space-y-1">
-                                            <p className="text-gray-700">
-                                                <span className="font-semibold">Seller:</span> {order.sellerName}
-                                            </p>
-                                            <p className="text-gray-700">
-                                                <span className="font-semibold">Location:</span> {order.location}
-                                            </p>
-                                            <p className="text-gray-700">
-                                                <span className="font-semibold">Contact:</span> {order.phone_number}
-                                            </p>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h2 className="card-title text-lg font-bold text-gray-800">{order.title}</h2>
+                                            <span className="badge badge-sm bg-red-50 text-[#8b0018] border-[#8b0018]">{order.category}</span>
                                         </div>
+                                        <p className="text-2xl font-bold text-[#8b0018] mb-3">৳ {order.price}</p>
 
                                         {order.preOrder && (
-                                            <div className="space-y-2">
-                                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-                                                    <p className="font-semibold text-blue-900 mb-1">Your Pre-Order</p>
-                                                    <p className="text-gray-700">
-                                                        <span className="font-medium">Transaction ID:</span>
-                                                        <br />
-                                                        <span className="font-mono text-xs bg-white px-2 py-1 rounded mt-1 inline-block">
-                                                            {order.preOrder.transactionId}
-                                                        </span>
-                                                    </p>
-                                                    <div className="mt-2 flex items-center gap-2">
-                                                        <span className="font-medium">Status:</span>
-                                                        {order.preOrder.verified ? (
-                                                            <span className="badge badge-success badge-sm">✓ Verified</span>
-                                                        ) : (
-                                                            <span className="badge badge-warning badge-sm">Pending Verification</span>
-                                                        )}
-                                                    </div>
-                                                    {order.preOrder.verified && (
-                                                        <div className="mt-2">
-                                                            {order.productStatus === 'ready' ? (
-                                                                <div className="badge badge-success w-full py-3">
-                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                                    </svg>
-                                                                    Product Ready - Contact Seller
-                                                                </div>
-                                                            ) : (
-                                                                <div className="badge badge-info w-full py-3">
-                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                                    </svg>
-                                                                    Preparing Your Order
+                                            <div className="mb-3">
+                                                {order.preOrder.verified ? (
+                                                    order.productStatus === 'ready' ? (
+                                                        <div className="space-y-2">
+                                                            <div className="badge badge-success w-full py-3 gap-1">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                                </svg>
+                                                                Ready for Collection
+                                                            </div>
+                                                            {order.collectionLocation && (
+                                                                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
+                                                                    <p className="font-semibold text-green-900 mb-1 flex items-center gap-1">
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                                        </svg>
+                                                                        Collection Point:
+                                                                    </p>
+                                                                    <p className="text-gray-700 text-xs">{order.collectionLocation}</p>
                                                                 </div>
                                                             )}
                                                         </div>
-                                                    )}
-                                                    <p className="text-xs text-gray-500 mt-2">
-                                                        Ordered: {new Date(order.preOrder.createdAt).toLocaleDateString()}
-                                                    </p>
-                                                </div>
+                                                    ) : (
+                                                        <div className="badge badge-info w-full py-3 gap-1">
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                            </svg>
+                                                            Preparing Order
+                                                        </div>
+                                                    )
+                                                ) : (
+                                                    <div className="badge badge-warning w-full py-3 gap-1">
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        Pending Verification
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
 
-                                        <div className="card-actions justify-end mt-4 border-t pt-4">
+                                        <div className="card-actions justify-end mt-auto border-t pt-4">
                                             <button
                                                 onClick={() => navigate(`/marketplace/${order.postId}`)}
-                                                className="btn btn-sm btn-outline border-gray-300"
+                                                className="btn btn-sm bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none w-full"
                                             >
                                                 View Details
                                             </button>

@@ -45,6 +45,7 @@ const marketplacePostSchema = new mongoose.Schema({
       'Laptop, PC and PC parts',
       'Books, Study materials',
       'Bikes and cycles',
+      'Clothing',
       'Others'
     ]
   },
@@ -58,7 +59,7 @@ const marketplacePostSchema = new mongoose.Schema({
   },
   location: {
     type: String,
-    required: true
+    default: 'N/A'
   },
   price: {
     type: Number,
@@ -79,6 +80,10 @@ const marketplacePostSchema = new mongoose.Schema({
     type: String,
     enum: ['not_ready', 'ready'],
     default: 'not_ready'
+  },
+  collectionLocation: {
+    type: String,
+    default: null
   },
   // Legacy fields for backward compatibility
   paymentStatus: {

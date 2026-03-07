@@ -12,6 +12,7 @@ const CATEGORIES = [
     'Laptop, PC and PC parts',
     'Books, Study materials',
     'Bikes and cycles',
+    'Clothing',
     'Others'
 ];
 
@@ -73,10 +74,10 @@ export default function MarketplaceFeed() {
                             </div>
                         </div>
                         <div className="flex gap-3">
-                            <Link to="/marketplace/my-orders" className="btn btn-outline border-[#e50914] text-[#e50914] hover:bg-[#e50914] hover:text-white">
+                            <Link to="/marketplace/my-orders" className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none shadow-md">
                                 My Orders
                             </Link>
-                            <Link to="/marketplace/my-posts" className="btn btn-outline border-[#e50914] text-[#e50914] hover:bg-[#e50914] hover:text-white">
+                            <Link to="/marketplace/my-posts" className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none shadow-md">
                                 My Posts
                             </Link>
                             <Link to="/marketplace/create" className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none shadow-md">
@@ -148,11 +149,6 @@ export default function MarketplaceFeed() {
                                     </div>
                                     <div className="badge badge-outline text-[#8b0018] border-[#8b0018] mb-2">{post.category}</div>
                                     <p className="text-gray-600 text-sm line-clamp-2 mb-3 h-10">{post.description}</p>
-
-                                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                        <span className="truncate">{post.location}</span>
-                                    </div>
 
                                     <div className="card-actions justify-between items-center mt-auto pt-3 border-t border-gray-100">
                                         <div className="text-xl font-bold text-gray-900">৳ {post.price}</div>

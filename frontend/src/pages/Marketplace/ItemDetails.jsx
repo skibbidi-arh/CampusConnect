@@ -21,6 +21,8 @@ export default function MarketplaceItemDetails() {
     const [transactionId, setTransactionId] = useState('');
     const [userPreOrder, setUserPreOrder] = useState(null);
     const [showPreOrderModal, setShowPreOrderModal] = useState(false);
+    const [showCollectionModal, setShowCollectionModal] = useState(false);
+    const [collectionLocation, setCollectionLocation] = useState('');
 
     const currentUserId = User?.users_id;
 
@@ -49,25 +51,6 @@ export default function MarketplaceItemDetails() {
             navigate('/marketplace');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handlePaymentDone = async () => {
-        if (!window.confirm('Have you completed the payment for this item?')) return;
-        try {
-            setActionLoading(true);
-            const token = sessionStorage.getItem('authToken');
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-
-            const res = await axios.put(`${BASE_URL}/${id}/payment-done`, {}, config);
-            if (res.data.success) {
-                toast.success('Payment marked as done!');
-                setPost(res.data.post); // Update local state
-            }
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to update payment status');
-        } finally {
-            setActionLoading(false);
         }
     };
 
@@ -111,12 +94,23 @@ export default function MarketplaceItemDetails() {
     };
 
     const handleMarkReady = async () => {
+        setShowCollectionModal(true);
+    };
+
+    const handleSubmitCollection = async (e) => {
+        e.preventDefault();
+        if (!collectionLocation.trim()) {
+            toast.error('Please enter collection location');
+            return;
+        }
         try {
             setMarkReadyLoading(true);
             const token = sessionStorage.getItem('authToken');
             const config = { headers: { Authorization: `Bearer ${token}` } };
-            await axios.put(`${BASE_URL}/${id}/mark-ready`, {}, config);
+            await axios.put(`${BASE_URL}/${id}/mark-ready`, { collectionLocation }, config);
             toast.success('Product marked as ready!');
+            setShowCollectionModal(false);
+            setCollectionLocation('');
             fetchPost(); // Refresh to get updated data
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to mark product as ready');
@@ -169,7 +163,21 @@ export default function MarketplaceItemDetails() {
                         <div className="md:w-1/2 p-6 lg:p-10 flex flex-col">
                             <div className="mb-2 flex justify-between items-start">
                                 <span className="badge bg-red-50 text-[#8b0018] border-[#8b0018]">{post.category}</span>
-                                <span className="text-sm text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</span>
+                                <div className="flex gap-2 items-center">
+                                    {isSeller && (
+                                        <button
+                                            onClick={() => navigate(`/marketplace/edit/${id}`)}
+                                            className="btn btn-sm btn-ghost text-[#8b0018] hover:bg-red-50"
+                                            title="Edit post"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                            </svg>
+                                            Edit
+                                        </button>
+                                    )}
+                                    <span className="text-sm text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</span>
+                                </div>
                             </div>
 
                             <div className="flex justify-between items-start mb-2">
@@ -177,10 +185,9 @@ export default function MarketplaceItemDetails() {
                                 {isSeller && post.preOrderEnabled && post.productStatus !== 'ready' && (
                                     <button
                                         onClick={handleMarkReady}
-                                        disabled={markReadyLoading}
                                         className="btn btn-sm btn-info text-white ml-2"
                                     >
-                                        {markReadyLoading ? <span className="loading loading-spinner loading-xs"></span> : 'Mark Ready'}
+                                        Mark Ready
                                     </button>
                                 )}
                                 {isSeller && post.preOrderEnabled && post.productStatus === 'ready' && (
@@ -196,16 +203,29 @@ export default function MarketplaceItemDetails() {
 
                             <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-3">
                                 <div className="flex items-center text-gray-700">
-                                    <span className="font-semibold w-24">Seller:</span>
-                                    <span>{post.sellerName}</span>
+                                    <span className="font-semibold w-32">Username:</span>
+                                    <span>{post.sellerUsername || 'N/A'}</span>
                                 </div>
                                 <div className="flex items-center text-gray-700">
-                                    <span className="font-semibold w-24">Location:</span>
-                                    <span>{post.location}</span>
+                                    <span className="font-semibold w-32">Email:</span>
+                                    <a href={`mailto:${post.sellerEmail}`} className="text-[#8b0018] hover:underline">
+                                        {post.sellerEmail || 'N/A'}
+                                    </a>
                                 </div>
                                 <div className="flex items-center text-gray-700">
-                                    <span className="font-semibold w-24">Contact:</span>
-                                    <a href={`tel:${post.phone_number}`} className="text-[#8b0018] font-medium hover:underline">{post.phone_number}</a>
+                                    <span className="font-semibold w-32">Department:</span>
+                                    <span>{post.sellerDept || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center text-gray-700">
+                                    <span className="font-semibold w-32">Batch:</span>
+                                    <span>{post.sellerBatch || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center text-gray-700">
+                                    <span className="font-semibold w-32">Contact:</span>
+                                    <div className="flex flex-col">
+                                        <a href={`tel:${post.phone_number}`} className="text-[#8b0018] font-medium hover:underline">{post.phone_number}</a>
+                                        <span className="text-xs text-gray-500 mt-0.5">(WhatsApp available)</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -216,8 +236,18 @@ export default function MarketplaceItemDetails() {
                                     <>
                                         {isSeller ? (
                                             // Seller view - show button to open pre-orders modal
-                                            <div className="space-y-3">
-                                                <button
+                                            <div className="space-y-3">                                                {post.productStatus === 'ready' && post.collectionLocation && (
+                                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-3">
+                                                        <p className="font-semibold text-green-900 mb-2 flex items-center gap-2">
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                            </svg>
+                                                            Collection Location Set:
+                                                        </p>
+                                                        <p className="text-gray-700 text-sm">{post.collectionLocation}</p>
+                                                    </div>
+                                                )}                                                <button
                                                     onClick={() => setShowPreOrderModal(true)}
                                                     className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none w-full shadow-lg"
                                                 >
@@ -237,6 +267,15 @@ export default function MarketplaceItemDetails() {
                                                         <p className="text-sm text-center mb-3">
                                                             Your order has been verified and is ready to collect.
                                                         </p>
+                                                        {post.collectionLocation && (
+                                                            <div className="bg-white border border-green-300 rounded-lg p-3 mt-3">
+                                                                <p className="font-semibold text-gray-800 mb-1 flex items-center gap-2">
+                                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                                                    Collection Location:
+                                                                </p>
+                                                                <p className="text-gray-700">{post.collectionLocation}</p>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     // Still pending or preparing
@@ -305,37 +344,20 @@ export default function MarketplaceItemDetails() {
                                         )}
                                     </>
                                 ) : (
-                                    // Regular payment flow
-                                    <>
-                                        {post.paymentStatus === 'Payment Done' ? (
-                                            <div className="bg-green-50 text-green-800 border border-green-200 rounded-lg p-4 text-center">
-                                                <div className="font-bold flex items-center justify-center gap-2 mb-1">
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                    Payment Marked as Done
-                                                </div>
-                                                {isSeller ? (
-                                                    <p className="text-sm">Please verify the payment and confirm in "My Posts" to remove this listing.</p>
-                                                ) : (
-                                                    <p className="text-sm">Waiting for the seller to confirm payment.</p>
-                                                )}
+                                    // Regular item - contact seller directly
+                                    <div className="text-center text-gray-700 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                        {isSeller ? (
+                                            <div>
+                                                <p className="font-medium mb-1">You are the seller of this item</p>
+                                                <p className="text-sm text-gray-600">Buyers will contact you directly via phone to arrange payment and meet-up</p>
                                             </div>
                                         ) : (
-                                            !isSeller && (
-                                                <button
-                                                    onClick={handlePaymentDone}
-                                                    disabled={actionLoading}
-                                                    className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none w-full shadow-lg"
-                                                >
-                                                    {actionLoading ? <span className="loading loading-spinner"></span> : 'Mark Payment as Done'}
-                                                </button>
-                                            )
-                                        )}
-                                        {isSeller && post.paymentStatus === 'Pending' && (
-                                            <div className="text-center text-gray-500 bg-gray-50 rounded-lg p-3 border border-gray-100 italic">
-                                                You are the seller of this item.
+                                            <div>
+                                                <p className="font-medium mb-2 text-[#8b0018]">Contact seller to arrange purchase</p>
+                                                <p className="text-sm text-gray-600">Contact the seller using the phone number above to discuss payment and meet-up location</p>
                                             </div>
                                         )}
-                                    </>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -395,6 +417,62 @@ export default function MarketplaceItemDetails() {
                         </div>
                     </div>
                     <div className="modal-backdrop" onClick={() => setShowPreOrderModal(false)}></div>
+                </div>
+            )}
+
+            {/* Collection Location Modal */}
+            {showCollectionModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-xl mb-4 text-gray-900">Set Collection Location</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Please specify where buyers can collect their orders. This will be shown to all verified pre-order customers.
+                        </p>
+                        
+                        <form onSubmit={handleSubmitCollection}>
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-medium">Collection Location</span>
+                                </label>
+                                <textarea
+                                    value={collectionLocation}
+                                    onChange={(e) => setCollectionLocation(e.target.value)}
+                                    placeholder="e.g., Main Campus Gate, Near Cafeteria, South Hall Room 302"
+                                    className="textarea textarea-bordered focus:border-[#8b0018] h-24"
+                                    required
+                                />
+                                <label className="label">
+                                    <span className="label-text-alt text-gray-500">Be specific so buyers can easily find you</span>
+                                </label>
+                            </div>
+                            
+                            <div className="modal-action">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowCollectionModal(false);
+                                        setCollectionLocation('');
+                                    }}
+                                    className="btn btn-ghost"
+                                    disabled={markReadyLoading}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={markReadyLoading}
+                                    className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none"
+                                >
+                                    {markReadyLoading ? (
+                                        <span className="loading loading-spinner loading-sm"></span>
+                                    ) : (
+                                        'Confirm & Mark Ready'
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div className="modal-backdrop" onClick={() => !markReadyLoading && setShowCollectionModal(false)}></div>
                 </div>
             )}
 

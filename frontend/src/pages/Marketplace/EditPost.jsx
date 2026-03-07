@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import GoBackButton from '../../components/GoBackButton';
+import { AuthContext } from '../../context/AuthContext';
 
 const CATEGORIES = [
     'Home items',
@@ -15,18 +16,67 @@ const CATEGORIES = [
     'Others'
 ];
 
-export default function CreateMarketplacePost() {
+const BASE_URL = 'http://localhost:4000/api/marketplace';
+
+export default function EditMarketplacePost() {
+    const { id } = useParams();
     const [formData, setFormData] = useState({
         title: '',
         category: CATEGORIES[0],
         description: '',
         price: '',
         phone_number: '',
-        image: '', // Single image URL for simplicity, backend supports array
+        image: '',
         preOrderEnabled: false
     });
     const [loading, setLoading] = useState(false);
+    const [fetchingPost, setFetchingPost] = useState(true);
+    const [originalImage, setOriginalImage] = useState('');
     const navigate = useNavigate();
+    const { User } = AuthContext();
+    const currentUserId = User?.users_id;
+
+    useEffect(() => {
+        fetchPost();
+    }, [id]);
+
+    const fetchPost = async () => {
+        try {
+            setFetchingPost(true);
+            const token = sessionStorage.getItem('authToken');
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+
+            const res = await axios.get(`${BASE_URL}/${id}`, config);
+            if (res.data.success) {
+                const post = res.data.post;
+
+                // Check if user is the seller
+                if (Number(currentUserId) !== Number(post.sellerId)) {
+                    toast.error('You are not authorized to edit this post');
+                    navigate('/marketplace');
+                    return;
+                }
+
+                // Pre-populate form
+                setFormData({
+                    title: post.title || '',
+                    category: post.category || CATEGORIES[0],
+                    description: post.description || '',
+                    price: post.price || '',
+                    phone_number: post.phone_number || '',
+                    image: post.images?.[0] || '',
+                    preOrderEnabled: post.preOrderEnabled || false
+                });
+                setOriginalImage(post.images?.[0] || '');
+            }
+        } catch (error) {
+            console.error('Error fetching post:', error);
+            toast.error('Failed to load post details');
+            navigate('/marketplace');
+        } finally {
+            setFetchingPost(false);
+        }
+    };
 
     const handleChange = (e) => {
         if (e.target.name === 'image') {
@@ -55,7 +105,7 @@ export default function CreateMarketplacePost() {
             setLoading(true);
             const token = sessionStorage.getItem('authToken');
             if (!token) {
-                toast.error('You must be logged in to post');
+                toast.error('You must be logged in to update');
                 navigate('/login');
                 return;
             }
@@ -63,19 +113,31 @@ export default function CreateMarketplacePost() {
             const payload = { ...formData, images: formData.image ? [formData.image] : [] };
 
             const config = { headers: { Authorization: `Bearer ${token}` } };
-            const res = await axios.post('http://localhost:4000/api/marketplace', payload, config);
+            const res = await axios.put(`${BASE_URL}/${id}`, payload, config);
 
             if (res.data.success) {
-                toast.success('Item posted successfully!');
-                navigate('/marketplace');
+                toast.success('Item updated successfully!');
+                navigate(`/marketplace/${id}`);
             }
         } catch (error) {
-            console.error('Error creating post:', error);
-            toast.error(error.response?.data?.message || 'Failed to post item');
+            console.error('Error updating post:', error);
+            toast.error(error.response?.data?.message || 'Failed to update item');
         } finally {
             setLoading(false);
         }
     };
+
+    if (fetchingPost) {
+        return (
+            <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+                <Header showMenuButton={false} />
+                <main className="flex-1 flex items-center justify-center">
+                    <span className="loading loading-spinner loading-lg text-[#e50914]"></span>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
 
     return (
         <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100">
@@ -85,8 +147,8 @@ export default function CreateMarketplacePost() {
                     <div className="mb-6 flex items-center gap-4">
                         <GoBackButton />
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Post an Item for Sale</h1>
-                            <p className="mt-1 text-sm text-gray-600">List your item on the campus marketplace</p>
+                            <h1 className="text-3xl font-bold text-gray-900">Edit Your Post</h1>
+                            <p className="mt-1 text-sm text-gray-600">Update your marketplace listing</p>
                         </div>
                     </div>
                     <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
@@ -146,7 +208,7 @@ export default function CreateMarketplacePost() {
                                 onChange={handleChange}
                                 className="file-input file-input-bordered focus:border-[#8b0018] w-full"
                             />
-                            <label className="label"><span className="label-text-alt text-gray-500">Upload a photo of the item (Max 5MB)</span></label>
+                            <label className="label"><span className="label-text-alt text-gray-500">Upload a new photo to replace the current one (Max 5MB)</span></label>
 
                             {formData.image && (
                                 <div className="mt-4 relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
@@ -162,9 +224,22 @@ export default function CreateMarketplacePost() {
                             )}
                         </div>
 
-                        <button type="submit" disabled={loading} className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none w-full mt-4 shadow-md">
-                            {loading ? <span className="loading loading-spinner"></span> : 'Post Item'}
-                        </button>
+                        <div className="flex gap-3">
+                            <button 
+                                type="button" 
+                                onClick={() => navigate(`/marketplace/${id}`)}
+                                className="btn btn-ghost flex-1"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                type="submit" 
+                                disabled={loading} 
+                                className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none flex-1 shadow-md"
+                            >
+                                {loading ? <span className="loading loading-spinner"></span> : 'Update Post'}
+                            </button>
+                        </div>
                     </form>
                     </div>
                 </div>

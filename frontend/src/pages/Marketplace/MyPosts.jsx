@@ -48,18 +48,6 @@ export default function MyMarketplacePosts() {
             toast.error('Failed to delete post');
         }
     };
-
-    const handleConfirmPayment = async (id) => {
-        try {
-            const token = sessionStorage.getItem('authToken');
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-            await axios.put(`${BASE_URL}/${id}/confirm-payment`, {}, config);
-            toast.success('Payment confirmed! Item removed from marketplace.');
-            setPosts(posts.filter(p => p._id !== id)); // Remove from UI as it's sold
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to confirm payment');
-        }
-    };
     return (
         <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100">
             <Header showMenuButton={false} />
@@ -95,19 +83,9 @@ export default function MyMarketplacePosts() {
                                                 {post.preOrderEnabled && (
                                                     <div className="badge badge-info text-white">Pre-Order</div>
                                                 )}
-                                                <div className={`badge ${post.paymentStatus === 'Payment Done' ? 'badge-success text-white' : 'badge-ghost'}`}>
-                                                    {post.paymentStatus}
-                                                </div>
                                             </div>
                                         </div>
                                         <p className="text-gray-500 text-sm mb-2">৳ {post.price} • {post.category}</p>
-
-                                        {post.paymentStatus === 'Payment Done' && (
-                                            <div className="bg-green-50 text-green-800 p-3 rounded-lg text-sm mb-2 border border-green-200">
-                                                <strong>Payment Action Required!</strong>
-                                                <p>Buyer ({post.buyerName}) marked payment as done.</p>
-                                            </div>
-                                        )}
 
                                         {post.preOrderEnabled && post.preOrders && post.preOrders.length > 0 && (
                                             <div className="bg-blue-50 text-blue-800 p-3 rounded-lg text-sm mb-2 border border-blue-200">
@@ -117,14 +95,6 @@ export default function MyMarketplacePosts() {
                                         )}
 
                                         <div className="card-actions justify-end mt-4 border-t pt-4">
-                                            {post.paymentStatus === 'Payment Done' && (
-                                                <button
-                                                    onClick={() => handleConfirmPayment(post._id)}
-                                                    className="btn btn-sm btn-success text-white"
-                                                >
-                                                    Confirm Payment
-                                                </button>
-                                            )}
                                             <button
                                                 onClick={() => navigate(`/marketplace/${post._id}`)}
                                                 className="btn btn-sm btn-outline border-gray-300"

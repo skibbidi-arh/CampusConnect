@@ -5,9 +5,8 @@ const {
     getPosts,
     getMyPosts,
     getPostById,
+    updatePost,
     deletePost,
-    markPaymentDone,
-    confirmPayment,
     submitPreOrder,
     verifyPreOrder,
     markProductReady,
@@ -35,15 +34,8 @@ router.route('/my-orders')
 // /api/marketplace/:id
 router.route('/:id')
     .get(getPostById)
+    .put(updatePost)
     .delete(deletePost);
-
-// /api/marketplace/:id/payment-done
-router.route('/:id/payment-done')
-    .put(markPaymentDone);
-
-// /api/marketplace/:id/confirm-payment
-router.route('/:id/confirm-payment')
-    .put(confirmPayment);
 
 // Pre-order routes
 // /api/marketplace/:id/pre-order

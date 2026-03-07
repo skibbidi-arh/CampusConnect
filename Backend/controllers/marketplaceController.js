@@ -1,4 +1,5 @@
 const MarketplacePost = require('../models/MarketplacePost');
+const prisma = require('../src/config/prisma');
 
 // @desc    Create a new post
 // @route   POST /api/marketplace
@@ -11,7 +12,7 @@ const createPost = async (req, res) => {
         const sellerId = req.verifiedUser.user_id;
         const sellerName = req.verifiedUser.email || 'Anonymous'; // fallback
 
-        if (!title || !category || !description || !location || price === undefined || !phone_number) {
+        if (!title || !category || !description || price === undefined || !phone_number) {
             return res.status(400).json({ success: false, message: 'Please provide all required fields' });
         }
 
@@ -22,7 +23,7 @@ const createPost = async (req, res) => {
             category,
             description,
             images: images || [],
-            location,
+            location: location || 'N/A',
             price,
             phone_number,
             preOrderEnabled: preOrderEnabled || false,
@@ -86,10 +87,66 @@ const getPostById = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Post not found' });
         }
 
-        res.status(200).json({ success: true, post });
+        // Fetch seller details from Users table
+        const seller = await prisma.users.findUnique({
+            where: { users_id: post.sellerId },
+            select: {
+                user_name: true,
+                email: true,
+                dept: true,
+                batch: true
+            }
+        });
+
+        // Add seller details to post object
+        const postWithSellerDetails = {
+            ...post.toObject(),
+            sellerUsername: seller?.user_name || 'N/A',
+            sellerEmail: seller?.email || 'N/A',
+            sellerDept: seller?.dept || 'N/A',
+            sellerBatch: seller?.batch || 'N/A'
+        };
+
+        res.status(200).json({ success: true, post: postWithSellerDetails });
     } catch (error) {
         console.error('Error in getPostById:', error);
         res.status(500).json({ success: false, message: 'Server error fetching post' });
+    }
+};
+
+// @desc    Update a post (only if user is the seller)
+// @route   PUT /api/marketplace/:id
+// @access  Private
+const updatePost = async (req, res) => {
+    try {
+        const userId = req.verifiedUser.user_id;
+        const post = await MarketplacePost.findById(req.params.id);
+
+        if (!post) {
+            return res.status(404).json({ success: false, message: 'Post not found' });
+        }
+
+        if (post.sellerId !== userId) {
+            return res.status(403).json({ success: false, message: 'Not authorized to update this post' });
+        }
+
+        const { title, category, description, images, location, price, phone_number, preOrderEnabled } = req.body;
+
+        // Update fields if provided
+        if (title !== undefined) post.title = title;
+        if (category !== undefined) post.category = category;
+        if (description !== undefined) post.description = description;
+        if (images !== undefined) post.images = images;
+        if (location !== undefined) post.location = location;
+        if (price !== undefined) post.price = price;
+        if (phone_number !== undefined) post.phone_number = phone_number;
+        if (preOrderEnabled !== undefined) post.preOrderEnabled = preOrderEnabled;
+
+        const updatedPost = await post.save();
+        res.status(200).json({ success: true, post: updatedPost });
+    } catch (error) {
+        console.error('Error in updatePost:', error);
+        res.status(500).json({ success: false, message: 'Server error updating post' });
     }
 };
 
@@ -115,65 +172,6 @@ const deletePost = async (req, res) => {
     } catch (error) {
         console.error('Error in deletePost:', error);
         res.status(500).json({ success: false, message: 'Server error deleting post' });
-    }
-};
-
-// @desc    Buyer marks payment as done
-// @route   PUT /api/marketplace/:id/payment-done
-// @access  Private
-const markPaymentDone = async (req, res) => {
-    try {
-        const buyerId = req.verifiedUser.user_id;
-        const buyerName = req.verifiedUser.email || 'Anonymous';
-        const post = await MarketplacePost.findById(req.params.id);
-
-        if (!post) {
-            return res.status(404).json({ success: false, message: 'Post not found' });
-        }
-
-        if (post.sellerId === buyerId) {
-            return res.status(400).json({ success: false, message: 'You cannot buy your own item' });
-        }
-
-        post.paymentStatus = 'Payment Done';
-        post.buyerId = buyerId;
-        post.buyerName = buyerName;
-
-        const updatedPost = await post.save();
-        res.status(200).json({ success: true, post: updatedPost });
-    } catch (error) {
-        console.error('Error in markPaymentDone:', error);
-        res.status(500).json({ success: false, message: 'Server error updating payment status' });
-    }
-};
-
-// @desc    Seller confirms payment
-// @route   PUT /api/marketplace/:id/confirm-payment
-// @access  Private
-const confirmPayment = async (req, res) => {
-    try {
-        const sellerId = req.verifiedUser.user_id;
-        const post = await MarketplacePost.findById(req.params.id);
-
-        if (!post) {
-            return res.status(404).json({ success: false, message: 'Post not found' });
-        }
-
-        if (post.sellerId !== sellerId) {
-            return res.status(403).json({ success: false, message: 'Not authorized to confirm payment for this post' });
-        }
-
-        if (post.paymentStatus !== 'Payment Done') {
-            return res.status(400).json({ success: false, message: 'Payment must be marked as done by buyer first' });
-        }
-
-        // If payment confirmed, the item is sold and can be deleted from active listings
-        await MarketplacePost.deleteOne({ _id: post._id });
-
-        res.status(200).json({ success: true, message: 'Payment confirmed and post removed' });
-    } catch (error) {
-        console.error('Error in confirmPayment:', error);
-        res.status(500).json({ success: false, message: 'Server error confirming payment' });
     }
 };
 
@@ -264,6 +262,7 @@ const verifyPreOrder = async (req, res) => {
 const markProductReady = async (req, res) => {
     try {
         const sellerId = req.verifiedUser.user_id;
+        const { collectionLocation } = req.body;
         const post = await MarketplacePost.findById(req.params.id);
 
         if (!post) {
@@ -278,7 +277,12 @@ const markProductReady = async (req, res) => {
             return res.status(400).json({ success: false, message: 'This is not a pre-order item' });
         }
 
+        if (!collectionLocation || !collectionLocation.trim()) {
+            return res.status(400).json({ success: false, message: 'Collection location is required' });
+        }
+
         post.productStatus = 'ready';
+        post.collectionLocation = collectionLocation;
         const updatedPost = await post.save();
 
         res.status(200).json({ success: true, post: updatedPost, message: 'Product marked as ready' });
@@ -344,6 +348,7 @@ const getMyOrders = async (req, res) => {
                 phone_number: post.phone_number,
                 location: post.location,
                 productStatus: post.productStatus,
+                collectionLocation: post.collectionLocation,
                 preOrder: userPreOrder,
                 createdAt: post.createdAt
             };
@@ -361,9 +366,8 @@ module.exports = {
     getPosts,
     getMyPosts,
     getPostById,
+    updatePost,
     deletePost,
-    markPaymentDone,
-    confirmPayment,
     submitPreOrder,
     verifyPreOrder,
     markProductReady,
