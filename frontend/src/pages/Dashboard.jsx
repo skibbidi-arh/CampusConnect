@@ -110,14 +110,28 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Top Navbar */}
-      <Header handlelogout={handlelogout} onProfileClick={() => setProfileOpen(true)} />
+    <div 
+      className="flex min-h-screen flex-col relative"
+      style={{
+        backgroundImage: 'url(/campus-background.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Background Overlay - adjusted for high-res image clarity */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/25 to-black/40" style={{ zIndex: 0 }} />
+      
+      {/* Content Wrapper */}
+      <div className="relative z-10 flex min-h-screen flex-col">
+        {/* Top Navbar */}
+        <Header handlelogout={handlelogout} onProfileClick={() => setProfileOpen(true)} />
 
         {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
           {/* Welcome Section */}
-          <div className="relative mb-8 overflow-hidden rounded-2xl bg-white p-8 shadow-lg border-l-4 border-[#e50914] animate-[fade-up_700ms_ease-out_both]">
+          <div className="relative mb-8 overflow-hidden rounded-2xl bg-white/95 backdrop-blur-sm p-8 shadow-2xl border-l-4 border-[#e50914] animate-[fade-up_700ms_ease-out_both]">
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#e50914]/5 to-transparent rounded-full -mr-32 -mt-32" aria-hidden="true" />
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-3">
@@ -147,7 +161,7 @@ export default function Dashboard() {
               <a
                 key={feature.id}
                 href={feature.id === 5 ? "/home" : feature.link}
-                className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl animate-[pop-in_550ms_cubic-bezier(0.22,1,0.36,1)_both]"
+                className="group relative overflow-hidden rounded-2xl bg-white/95 backdrop-blur-sm p-6 shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-[pop-in_550ms_cubic-bezier(0.22,1,0.36,1)_both]"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 {/* Card Background Pattern */}
@@ -185,16 +199,17 @@ export default function Dashboard() {
           </div>
         </main>
 
-      {/* Integration of Profile Sidebar */}
-      <ProfileSidebar
-        user={User}
-        isOpen={profileOpen}
-        onClose={() => setProfileOpen(false)}
-        onUpdate={handleProfileUpdate}
-      />
+        {/* Integration of Profile Sidebar */}
+        <ProfileSidebar
+          user={User}
+          isOpen={profileOpen}
+          onClose={() => setProfileOpen(false)}
+          onUpdate={handleProfileUpdate}
+        />
 
-      {/* Footer */}
-      <Footer />
+        {/* Footer */}
+        <Footer />
+      </div>
 
       <style>{`
         @keyframes pop-in { 
