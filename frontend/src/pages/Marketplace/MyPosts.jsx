@@ -91,8 +91,13 @@ export default function MyMarketplacePosts() {
                                     <div className="card-body p-5">
                                         <div className="flex justify-between items-start">
                                             <h2 className="card-title text-lg font-bold text-gray-800">{post.title}</h2>
-                                            <div className={`badge ${post.paymentStatus === 'Payment Done' ? 'badge-success text-white' : 'badge-ghost'}`}>
-                                                {post.paymentStatus}
+                                            <div className="flex flex-col gap-1">
+                                                {post.preOrderEnabled && (
+                                                    <div className="badge badge-info text-white">Pre-Order</div>
+                                                )}
+                                                <div className={`badge ${post.paymentStatus === 'Payment Done' ? 'badge-success text-white' : 'badge-ghost'}`}>
+                                                    {post.paymentStatus}
+                                                </div>
                                             </div>
                                         </div>
                                         <p className="text-gray-500 text-sm mb-2">৳ {post.price} • {post.category}</p>
@@ -101,6 +106,13 @@ export default function MyMarketplacePosts() {
                                             <div className="bg-green-50 text-green-800 p-3 rounded-lg text-sm mb-2 border border-green-200">
                                                 <strong>Payment Action Required!</strong>
                                                 <p>Buyer ({post.buyerName}) marked payment as done.</p>
+                                            </div>
+                                        )}
+
+                                        {post.preOrderEnabled && post.preOrders && post.preOrders.length > 0 && (
+                                            <div className="bg-blue-50 text-blue-800 p-3 rounded-lg text-sm mb-2 border border-blue-200">
+                                                <strong>Pre-Orders: {post.preOrders.length}</strong>
+                                                <p className="text-xs mt-1">Click "View" to manage pre-orders</p>
                                             </div>
                                         )}
 

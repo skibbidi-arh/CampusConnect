@@ -7,7 +7,12 @@ const {
     getPostById,
     deletePost,
     markPaymentDone,
-    confirmPayment
+    confirmPayment,
+    submitPreOrder,
+    verifyPreOrder,
+    markProductReady,
+    getPreOrders,
+    getMyOrders
 } = require('../controllers/marketplaceController');
 const { verifyToken } = require('../middleware/VerifyToken');
 
@@ -23,6 +28,10 @@ router.route('/')
 router.route('/my-posts')
     .get(getMyPosts);
 
+// /api/marketplace/my-orders
+router.route('/my-orders')
+    .get(getMyOrders);
+
 // /api/marketplace/:id
 router.route('/:id')
     .get(getPostById)
@@ -35,5 +44,22 @@ router.route('/:id/payment-done')
 // /api/marketplace/:id/confirm-payment
 router.route('/:id/confirm-payment')
     .put(confirmPayment);
+
+// Pre-order routes
+// /api/marketplace/:id/pre-order
+router.route('/:id/pre-order')
+    .post(submitPreOrder);
+
+// /api/marketplace/:id/pre-orders
+router.route('/:id/pre-orders')
+    .get(getPreOrders);
+
+// /api/marketplace/:id/pre-order/:preOrderId/verify
+router.route('/:id/pre-order/:preOrderId/verify')
+    .put(verifyPreOrder);
+
+// /api/marketplace/:id/mark-ready
+router.route('/:id/mark-ready')
+    .put(markProductReady);
 
 module.exports = router;

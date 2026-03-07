@@ -73,7 +73,10 @@ export default function MarketplaceFeed() {
                             </div>
                         </div>
                         <div className="flex gap-3">
-                            <Link to="/marketplace/my-posts" className="btn btn-outline border-[#8b0018] text-[#8b0018] hover:bg-[#8b0018] hover:text-white">
+                            <Link to="/marketplace/my-orders" className="btn btn-outline border-[#e50914] text-[#e50914] hover:bg-[#e50914] hover:text-white">
+                                My Orders
+                            </Link>
+                            <Link to="/marketplace/my-posts" className="btn btn-outline border-[#e50914] text-[#e50914] hover:bg-[#e50914] hover:text-white">
                                 My Posts
                             </Link>
                             <Link to="/marketplace/create" className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none shadow-md">

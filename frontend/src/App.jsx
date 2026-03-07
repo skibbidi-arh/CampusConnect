@@ -17,6 +17,7 @@ import Administrator from './pages/Administrator'
 import MarketplaceFeed from './pages/Marketplace/index'
 import CreateMarketplacePost from './pages/Marketplace/CreatePost'
 import MyMarketplacePosts from './pages/Marketplace/MyPosts'
+import MyMarketplaceOrders from './pages/Marketplace/MyOrders'
 import MarketplaceItemDetails from './pages/Marketplace/ItemDetails'
 
 // 1. FIXED Layout component with a container
@@ -67,6 +68,7 @@ function App() {
         <Route path="/marketplace" element={<MarketplaceFeed />} />
         <Route path="/marketplace/create" element={<CreateMarketplacePost />} />
         <Route path="/marketplace/my-posts" element={<MyMarketplacePosts />} />
+        <Route path="/marketplace/my-orders" element={<MyMarketplaceOrders />} />
         <Route path="/marketplace/:id" element={<MarketplaceItemDetails />} />
 
         <Route path="/accommodation" element={<RoommateWanted />} />

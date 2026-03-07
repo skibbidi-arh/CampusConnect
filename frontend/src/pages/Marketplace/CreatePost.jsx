@@ -22,7 +22,8 @@ export default function CreateMarketplacePost() {
         location: '',
         price: '',
         phone_number: '',
-        image: '' // Single image URL for simplicity, backend supports array
+        image: '', // Single image URL for simplicity, backend supports array
+        preOrderEnabled: false
     });
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -41,6 +42,8 @@ export default function CreateMarketplacePost() {
                 };
                 reader.readAsDataURL(file);
             }
+        } else if (e.target.type === 'checkbox') {
+            setFormData({ ...formData, [e.target.name]: e.target.checked });
         } else {
             setFormData({ ...formData, [e.target.name]: e.target.value });
         }
@@ -123,6 +126,22 @@ export default function CreateMarketplacePost() {
                                 <label className="label"><span className="label-text font-medium text-gray-700">Phone Number</span></label>
                                 <input type="tel" name="phone_number" value={formData.phone_number} onChange={handleChange} required className="input input-bordered focus:border-[#8b0018] w-full" placeholder="Your contact number" />
                             </div>
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label cursor-pointer justify-start gap-3">
+                                <input 
+                                    type="checkbox" 
+                                    name="preOrderEnabled" 
+                                    checked={formData.preOrderEnabled} 
+                                    onChange={handleChange} 
+                                    className="checkbox checkbox-error" 
+                                />
+                                <div>
+                                    <span className="label-text font-medium text-gray-700">Enable Pre-Order</span>
+                                    <p className="text-sm text-gray-500 mt-1">Allow users to pre-order and pay via bKash before product is ready</p>
+                                </div>
+                            </label>
                         </div>
 
                         <div className="form-control w-full mb-6">

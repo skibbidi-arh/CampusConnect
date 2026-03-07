@@ -1,5 +1,28 @@
 const mongoose = require('mongoose');
 
+const preOrderSchema = new mongoose.Schema({
+  userId: {
+    type: Number,
+    required: true
+  },
+  userName: {
+    type: String,
+    required: true
+  },
+  transactionId: {
+    type: String,
+    required: true
+  },
+  verified: {
+    type: Boolean,
+    default: false
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
 const marketplacePostSchema = new mongoose.Schema({
   sellerId: {
     type: Number, // Maps to the Postgres `users_id`
@@ -46,6 +69,18 @@ const marketplacePostSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // Pre-order fields
+  preOrderEnabled: {
+    type: Boolean,
+    default: false
+  },
+  preOrders: [preOrderSchema],
+  productStatus: {
+    type: String,
+    enum: ['not_ready', 'ready'],
+    default: 'not_ready'
+  },
+  // Legacy fields for backward compatibility
   paymentStatus: {
     type: String,
     enum: ['Pending', 'Payment Done'],
