@@ -53,9 +53,12 @@ const ErrorToast = ({ isVisible, message, onClose }) => {
 };
 
 const BACKEND_URL = 'http://localhost:4000/api/auth/verify-domain';
+const ADMINISTRATOR_URL = 'http://localhost:4000/api/administrator/login';
+
 export default function Login() {
   const { User, setUser, fetchCurrentUser } = AuthContext()
   const [loading, setloading] = useState(false)
+  const [isAdministratorMode, setIsAdministratorMode] = useState(false)
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState('');
   if (loading === true) {
@@ -96,7 +99,10 @@ export default function Login() {
       console.log(userCredential);
       const firebaseIdToken = await userCredential.user.getIdToken();
 
-      const response = await axios.post(BACKEND_URL, {
+      // Choose endpoint based on mode
+      const endpoint = isAdministratorMode ? ADMINISTRATOR_URL : BACKEND_URL;
+
+      const response = await axios.post(endpoint, {
         token: firebaseIdToken
       });
 
@@ -106,9 +112,16 @@ export default function Login() {
       console.log(response?.data);
 
       sessionStorage.setItem('authToken', token);
-      await fetchCurrentUser();
-      setloading(false)
-      navigate('/dashboard');
+      
+      // Navigate based on mode
+      if (isAdministratorMode) {
+        setloading(false)
+        navigate('/administrator');
+      } else {
+        await fetchCurrentUser();
+        setloading(false)
+        navigate('/dashboard');
+      }
 
     } catch (error) {
       const backendErrorMsg = error.response?.data?.message;
@@ -130,7 +143,9 @@ export default function Login() {
         <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:20px_20px]" aria-hidden="true" />
 
         <div className="relative z-10 w-full max-w-md rounded-2xl bg-white/10 p-8 shadow-2xl backdrop-blur-md animate-[pop-in_550ms_cubic-bezier(0.22,1,0.36,1)_both]">
-          <h2 className="mb-6 text-2xl font-bold tracking-tight">Sign in</h2>
+          <h2 className="mb-6 text-2xl font-bold tracking-tight">
+            {isAdministratorMode ? 'Administrator Sign in' : 'Sign in'}
+          </h2>
 
           <button
             onClick={handleSubmit}
@@ -149,7 +164,18 @@ export default function Login() {
             <span className="font-bold">Login with Google</span>
           </button>
 
-          <div className="mt-6 border-t border-white/10 pt-4 text-center">
+          {/* Administrator Mode Toggle */}
+          <div className="mt-6 border-t border-white/10 pt-4">
+            <button
+              onClick={() => setIsAdministratorMode(!isAdministratorMode)}
+              type="button"
+              className="w-full px-4 py-2 rounded-lg border-2 border-white/30 text-white text-sm font-semibold hover:bg-white/10 transition-all"
+            >
+              {isAdministratorMode ? '← Back to Regular Login' : '🔐 Login as Administrator'}
+            </button>
+          </div>
+
+          <div className="mt-4 text-center">
             <p className="text-[12px]  font-bold uppercase tracking-[0.2em] text-white">
               Institutional Access Only
             </p>

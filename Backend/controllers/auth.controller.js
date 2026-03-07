@@ -48,7 +48,10 @@ exports.googleSignin = async (req, res) => {
                 user_name: true,
                 phone_number: true,
                 image: true,
-                gender: true
+                gender: true,
+                dept: true,
+                batch: true,
+                student_id: true
             }
         });
 
@@ -92,7 +95,10 @@ exports.getMe = async (req, res) => {
                 email: true,
                 phone_number: true,
                 image: true,
-                gender: true
+                gender: true,
+                dept: true,
+                batch: true,
+                student_id: true
             }
         });
         if (!user) {
@@ -107,7 +113,7 @@ exports.getMe = async (req, res) => {
 };
 exports.updateUserProfile = async (req, res) => {
     try {
-        const { user_name, phone_number, image, gender } = req.body;
+        const { user_name, phone_number, image, gender, dept, batch, student_id } = req.body;
         const userId = req.verifiedUser.user_id;
 
         if (!userId) {
@@ -122,7 +128,10 @@ exports.updateUserProfile = async (req, res) => {
                 ...(user_name && { user_name }),
                 ...(phone_number && { phone_number }),
                 ...(image && { image }),
-                ...(gender && { gender })
+                ...(gender && { gender }),
+                ...(dept && { dept }),
+                ...(batch && { batch }),
+                ...(student_id && { student_id })
             },
             select: {
                 users_id: true,
@@ -130,7 +139,10 @@ exports.updateUserProfile = async (req, res) => {
                 email: true,
                 phone_number: true,
                 gender: true,
-                image: true
+                image: true,
+                dept: true,
+                batch: true,
+                student_id: true
             }
         });
 

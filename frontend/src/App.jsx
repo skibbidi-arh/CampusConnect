@@ -5,15 +5,20 @@ import Dashboard from './pages/Dashboard'
 import MedicalSupport from './pages/MedicalSupport/index'
 import LostFound from './pages/LostFound/index'
 import RoommateWanted from './pages/RoommateWanted/index'
+import ChatbotPage from './pages/Chatbot/ChatbotPage'
+import Societies from './pages/Societies/index'
+import SocietyPage from './pages/Societies/SocietyPage'
 import Navbar from './pages/Anonymous/components/Navbar'
-import SubmitFeedback from './pages/Anonymous/pages/SubmitFeedback'
 import CategoryFeedback from './pages/Anonymous/pages/CategoryFeedback'
 import Home from './pages/Anonymous/pages/Home'
+import Administrator from './pages/Administrator'
 
 // Marketplace
 import MarketplaceFeed from './pages/Marketplace/index'
 import CreateMarketplacePost from './pages/Marketplace/CreatePost'
+import EditMarketplacePost from './pages/Marketplace/EditPost'
 import MyMarketplacePosts from './pages/Marketplace/MyPosts'
+import MyMarketplaceOrders from './pages/Marketplace/MyOrders'
 import MarketplaceItemDetails from './pages/Marketplace/ItemDetails'
 
 // 1. FIXED Layout component with a container
@@ -51,28 +56,32 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/administrator" element={<Administrator />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/calendar" element={<Dashboard />} />
         <Route path="/medical" element={<Dashboard />} />
         <Route path="/medical-support" element={<MedicalSupport />} />
-        <Route path="/chatbot" element={<Dashboard />} />
+        <Route path="/chatbot" element={<ChatbotPage />} />
         <Route path="/lost-found" element={<LostFound />} />
         <Route path="/feedback" element={<Dashboard />} />
 
         {/* Marketplace Routes */}
         <Route path="/marketplace" element={<MarketplaceFeed />} />
         <Route path="/marketplace/create" element={<CreateMarketplacePost />} />
+        <Route path="/marketplace/edit/:id" element={<EditMarketplacePost />} />
         <Route path="/marketplace/my-posts" element={<MyMarketplacePosts />} />
+        <Route path="/marketplace/my-orders" element={<MyMarketplaceOrders />} />
         <Route path="/marketplace/:id" element={<MarketplaceItemDetails />} />
 
         <Route path="/accommodation" element={<RoommateWanted />} />
+        <Route path="/societies" element={<Societies />} />
+        <Route path="/societies/:id" element={<SocietyPage />} />
         <Route path="/profile" element={<Dashboard />} />
         <Route path="/settings" element={<Dashboard />} />
 
         {/* 2. Routes WITH Navbar */}
         <Route element={<AnonymousLayout />}>
           <Route path="/home" element={<Home />} />
-          <Route path="/submit" element={<SubmitFeedback />} />
           <Route path="/category/:category" element={<CategoryFeedback />} />
         </Route>
       </Routes>

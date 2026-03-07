@@ -1,30 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import GoBackButton from '../../components/GoBackButton';
+import { AuthContext } from '../../context/AuthContext';
 
 const CATEGORIES = [
     'Home items',
     'Laptop, PC and PC parts',
     'Books, Study materials',
     'Bikes and cycles',
+    'Clothing',
     'Others'
 ];
 
 export default function CreateMarketplacePost() {
+    const { User } = AuthContext();
     const [formData, setFormData] = useState({
         title: '',
         category: CATEGORIES[0],
         description: '',
-        location: '',
         price: '',
         phone_number: '',
-        image: '' // Single image URL for simplicity, backend supports array
+        image: '', // Single image URL for simplicity, backend supports array
+        preOrderEnabled: false
     });
+    const [sizeSpecifications, setSizeSpecifications] = useState([]);
+    const [newSize, setNewSize] = useState({ size: '', measurement: '' });
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
+    // Auto-fill phone number from user profile
+    useEffect(() => {
+        if (User && User.phone_number) {
+            setFormData(prevData => ({
+                ...prevData,
+                phone_number: User.phone_number
+            }));
+        }
+    }, [User]);
 
     const handleChange = (e) => {
         if (e.target.name === 'image') {
@@ -40,13 +56,36 @@ export default function CreateMarketplacePost() {
                 };
                 reader.readAsDataURL(file);
             }
+        } else if (e.target.type === 'checkbox') {
+            setFormData({ ...formData, [e.target.name]: e.target.checked });
         } else {
             setFormData({ ...formData, [e.target.name]: e.target.value });
         }
     };
 
+    const handleAddSize = () => {
+        if (!newSize.size || !newSize.measurement) {
+            toast.error('Please fill in all size specification fields');
+            return;
+        }
+        setSizeSpecifications([...sizeSpecifications, { ...newSize }]);
+        setNewSize({ size: '', measurement: '' });
+        toast.success('Size added successfully');
+    };
+
+    const handleRemoveSize = (index) => {
+        setSizeSpecifications(sizeSpecifications.filter((_, i) => i !== index));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validate size specifications for clothing category
+        if (formData.category === 'Clothing' && sizeSpecifications.length === 0) {
+            const shouldContinue = window.confirm('You have not added any size specifications for this clothing item. Do you want to continue anyway?');
+            if (!shouldContinue) return;
+        }
+
         try {
             setLoading(true);
             const token = sessionStorage.getItem('authToken');
@@ -56,7 +95,11 @@ export default function CreateMarketplacePost() {
                 return;
             }
 
-            const payload = { ...formData, images: formData.image ? [formData.image] : [] };
+            const payload = { 
+                ...formData, 
+                images: formData.image ? [formData.image] : [],
+                sizeSpecifications: formData.category === 'Clothing' ? sizeSpecifications : []
+            };
 
             const config = { headers: { Authorization: `Bearer ${token}` } };
             const res = await axios.post('http://localhost:4000/api/marketplace', payload, config);
@@ -74,11 +117,18 @@ export default function CreateMarketplacePost() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-gray-50">
-            <Header />
-            <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto w-full">
-                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
-                    <h1 className="text-2xl font-bold text-[#8b0018] mb-6">Post an Item for Sale</h1>
+        <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+            <Header showMenuButton={false} />
+            <main className="container mx-auto flex-1 p-4 sm:p-6 lg:p-8">
+                <div className="mx-auto max-w-3xl">
+                    <div className="mb-6 flex items-center gap-4">
+                        <GoBackButton />
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">Post an Item for Sale</h1>
+                            <p className="mt-1 text-sm text-gray-600">List your item on the campus marketplace</p>
+                        </div>
+                    </div>
+                    <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="form-control w-full">
@@ -105,17 +155,89 @@ export default function CreateMarketplacePost() {
                             <textarea name="description" value={formData.description} onChange={handleChange} required className="textarea textarea-bordered focus:border-[#8b0018] h-24" placeholder="Describe the item..."></textarea>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="form-control w-full">
-                                <label className="label"><span className="label-text font-medium text-gray-700">Location</span></label>
-                                <input type="text" name="location" value={formData.location} onChange={handleChange} required className="input input-bordered focus:border-[#8b0018] w-full" placeholder="e.g., South Hall, Room 302" />
-                            </div>
-
-                            <div className="form-control w-full">
-                                <label className="label"><span className="label-text font-medium text-gray-700">Phone Number</span></label>
-                                <input type="tel" name="phone_number" value={formData.phone_number} onChange={handleChange} required className="input input-bordered focus:border-[#8b0018] w-full" placeholder="Your contact number" />
-                            </div>
+                        <div className="form-control w-full">
+                            <label className="label"><span className="label-text font-medium text-gray-700">Phone Number</span></label>
+                            <input type="tel" name="phone_number" value={formData.phone_number} onChange={handleChange} required className="input input-bordered focus:border-[#8b0018] w-full" placeholder="Your contact number" />
+                            <label className="label"><span className="label-text-alt text-gray-500">Auto-filled from your profile</span></label>
                         </div>
+
+                        <div className="form-control">
+                            <label className="label cursor-pointer justify-start gap-3">
+                                <input 
+                                    type="checkbox" 
+                                    name="preOrderEnabled" 
+                                    checked={formData.preOrderEnabled} 
+                                    onChange={handleChange} 
+                                    className="checkbox checkbox-error" 
+                                />
+                                <div>
+                                    <span className="label-text font-medium text-gray-700">Enable Pre-Order</span>
+                                    <p className="text-sm text-gray-500 mt-1">Allow users to pre-order and pay via bKash before product is ready</p>
+                                </div>
+                            </label>
+                        </div>
+
+                        {/* Size Specifications for Clothing */}
+                        {formData.category === 'Clothing' && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
+                                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    Size Specifications
+                                </h3>
+                                <p className="text-sm text-gray-600 mb-4">Add size specifications for your clothing item (e.g., XL - 42 inches, 2XL - 44 inches)</p>
+
+                                {/* Add Size Form */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                                    <input
+                                        type="text"
+                                        placeholder="Size (e.g., XL, 2XL, M)"
+                                        value={newSize.size}
+                                        onChange={(e) => setNewSize({ ...newSize, size: e.target.value })}
+                                        className="input input-sm input-bordered focus:border-[#8b0018] w-full"
+                                    />
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Measurement (e.g., 42 inches)"
+                                            value={newSize.measurement}
+                                            onChange={(e) => setNewSize({ ...newSize, measurement: e.target.value })}
+                                            className="input input-sm input-bordered focus:border-[#8b0018] w-full"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleAddSize}
+                                            className="btn btn-sm bg-[#8b0018] hover:bg-[#b00020] text-white border-none"
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Display Added Sizes */}
+                                {sizeSpecifications.length > 0 && (
+                                    <div className="space-y-2">
+                                        <p className="text-sm font-medium text-gray-700">Added Sizes:</p>
+                                        {sizeSpecifications.map((spec, index) => (
+                                            <div key={index} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200">
+                                                <div className="flex gap-4 text-sm">
+                                                    <span className="font-semibold">{spec.size}</span>
+                                                    <span className="text-gray-600">{spec.measurement}</span>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveSize(index)}
+                                                    className="btn btn-xs btn-ghost text-red-600 hover:bg-red-50"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <div className="form-control w-full mb-6">
                             <label className="label"><span className="label-text font-medium text-gray-700">Upload Image</span></label>
@@ -142,10 +264,11 @@ export default function CreateMarketplacePost() {
                             )}
                         </div>
 
-                        <button type="submit" disabled={loading} className="btn bg-[#8b0018] hover:bg-[#b00020] text-white w-full mt-4">
+                        <button type="submit" disabled={loading} className="btn bg-gradient-to-r from-[#e50914] to-[#b00020] hover:opacity-90 text-white border-none w-full mt-4 shadow-md">
                             {loading ? <span className="loading loading-spinner"></span> : 'Post Item'}
                         </button>
                     </form>
+                    </div>
                 </div>
             </main>
             <Footer />

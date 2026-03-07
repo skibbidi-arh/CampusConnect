@@ -9,6 +9,9 @@ export default function ProfileSidebar({ user, isOpen, onClose, onUpdate }) {
         phone_number: "",
         image: "",
         gender: "",
+        dept: "",
+        batch: "",
+        student_id: "",
     });
     const [isLoading, setIsLoading] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -25,6 +28,9 @@ export default function ProfileSidebar({ user, isOpen, onClose, onUpdate }) {
                 phone_number: user.phone_number || "",
                 image: user.image || "",
                 gender: user.gender || "",
+                dept: user.dept || "",
+                batch: user.batch || "",
+                student_id: user.student_id || "",
             });
             setImageUrl(user.image || "");
             setImagePreview(user.image || null);
@@ -159,6 +165,42 @@ export default function ProfileSidebar({ user, isOpen, onClose, onUpdate }) {
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#b00020] outline-none transition-all"
                                 value={formData.user_name}
                                 onChange={(e) => setFormData({ ...formData, user_name: e.target.value })}
+                            />
+                        </div>
+
+                        {/* Student ID Field */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Student ID</label>
+                            <input
+                                type="text"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#b00020] outline-none transition-all"
+                                value={formData.student_id}
+                                onChange={(e) => setFormData({ ...formData, student_id: e.target.value })}
+                                placeholder="e.g., 210041XXX"
+                            />
+                        </div>
+
+                        {/* Department Field */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Department</label>
+                            <input
+                                type="text"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#b00020] outline-none transition-all"
+                                value={formData.dept}
+                                onChange={(e) => setFormData({ ...formData, dept: e.target.value })}
+                                placeholder="e.g., CSE, EEE, MCE"
+                            />
+                        </div>
+
+                        {/* Batch Field */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Batch</label>
+                            <input
+                                type="text"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#b00020] outline-none transition-all"
+                                value={formData.batch}
+                                onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
+                                placeholder="e.g., 2021, 2022"
                             />
                         </div>
 

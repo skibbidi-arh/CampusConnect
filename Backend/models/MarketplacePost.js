@@ -1,5 +1,60 @@
 const mongoose = require('mongoose');
 
+const sizeSpecificationSchema = new mongoose.Schema({
+  size: {
+    type: String,
+    required: true
+  },
+  measurement: {
+    type: String,
+    required: true
+  }
+});
+
+const preOrderSchema = new mongoose.Schema({
+  userId: {
+    type: Number,
+    required: true
+  },
+  userName: {
+    type: String,
+    required: true
+  },
+  userEmail: {
+    type: String,
+    required: true
+  },
+  transactionId: {
+    type: String,
+    required: true
+  },
+  selectedSize: {
+    type: String,
+    default: null
+  },
+  quantity: {
+    type: Number,
+    default: 1,
+    min: 1
+  },
+  verified: {
+    type: Boolean,
+    default: false
+  },
+  collected: {
+    type: Boolean,
+    default: false
+  },
+  collectedAt: {
+    type: Date,
+    default: null
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
 const marketplacePostSchema = new mongoose.Schema({
   sellerId: {
     type: Number, // Maps to the Postgres `users_id`
@@ -22,6 +77,7 @@ const marketplacePostSchema = new mongoose.Schema({
       'Laptop, PC and PC parts',
       'Books, Study materials',
       'Bikes and cycles',
+      'Clothing',
       'Others'
     ]
   },
@@ -35,7 +91,7 @@ const marketplacePostSchema = new mongoose.Schema({
   },
   location: {
     type: String,
-    required: true
+    default: 'N/A'
   },
   price: {
     type: Number,
@@ -46,6 +102,31 @@ const marketplacePostSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // Size specifications for clothing items
+  sizeSpecifications: {
+    type: [sizeSpecificationSchema],
+    default: []
+  },
+  // Pre-order fields
+  preOrderEnabled: {
+    type: Boolean,
+    default: false
+  },
+  preOrderStopped: {
+    type: Boolean,
+    default: false
+  },
+  preOrders: [preOrderSchema],
+  productStatus: {
+    type: String,
+    enum: ['not_ready', 'ready'],
+    default: 'not_ready'
+  },
+  collectionLocation: {
+    type: String,
+    default: null
+  },
+  // Legacy fields for backward compatibility
   paymentStatus: {
     type: String,
     enum: ['Pending', 'Payment Done'],

@@ -120,6 +120,10 @@ function generateEmailTemplate(donor, request) {
                 <span class="label">Requested By:</span>
                 <span class="value">${request.requesterName}</span>
               </div>
+              <div class="info-row">
+                <span class="label">Requester Email:</span>
+                <span class="value"><a href="mailto:${request.requesterEmail}" style="color: #e74c3c; text-decoration: none;">${request.requesterEmail}</a></span>
+              </div>
             </div>
           </div>
 
@@ -249,6 +253,7 @@ async function sendNotificationEmail(donor, bloodRequest, requester) {
           location: bloodRequest.location,
           deadline: bloodRequest.deadline,
           requesterName: requester.user_name,
+          requesterEmail: requester.email,
           requestId: bloodRequest.request_id,
         },
       ),

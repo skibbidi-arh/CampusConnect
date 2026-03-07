@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import GoBackButton from '../../components/GoBackButton'
+import ConfirmationModal from '../../components/ConfirmationModal'
 import RoommateCard from './components/RoommateCard'
 import PostRoommateForm from './components/PostRoommateForm'
 import Loading from '../../components/Loading'
@@ -18,6 +20,7 @@ export default function RoommateWanted() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [listings, setListings] = useState([])
   const [isLoadingListings, setIsLoadingListings] = useState(true)
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null })
   console.log(User)
 
   const fetchAllListings = async () => {
@@ -80,7 +83,7 @@ export default function RoommateWanted() {
       }
     } catch (error) {
       console.error("Update failed:", error);
-      alert("Could not update profile.");
+      toast.error("Could not update profile.");
     } finally {
       setIsUpdating(false);
     }
@@ -129,22 +132,28 @@ export default function RoommateWanted() {
   const sortedListings = [...filteredListings].sort((a, b) =>
     new Date(b.postedDate) - new Date(a.postedDate)
   )
-  const handleCancelListing = async (listingId) => {
-    if (!window.confirm("Are you sure you want to remove this ad?")) return;
+  const handleCancelListing = (listingId) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Remove Advertisement',
+      message: 'Are you sure you want to remove this ad? This action cannot be undone.',
+      onConfirm: async () => {
+        setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null })
+        try {
+          const token = sessionStorage.getItem('authToken');
+          const res = await axios.delete(`http://localhost:4000/api/bookRoom/delete/${listingId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
 
-    try {
-      const token = sessionStorage.getItem('authToken');
-      const res = await axios.delete(`http://localhost:4000/api/bookRoom/delete/${listingId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (res.data.success) {
-        fetchAllListings();
+          if (res.data.success) {
+            fetchAllListings();
+          }
+        } catch (error) {
+          console.error("Delete failed:", error);
+          toast.error(error.response?.data?.message || "Could not delete ad");
+        }
       }
-    } catch (error) {
-      console.error("Delete failed:", error);
-      alert(error.response?.data?.message || "Could not delete ad");
-    }
+    })
   };
 
   if (isLoadingListings) {
@@ -254,6 +263,18 @@ export default function RoommateWanted() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="Remove"
+        cancelText="Cancel"
+        type="danger"
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null })}
+      />
 
       <Footer />
     </div>

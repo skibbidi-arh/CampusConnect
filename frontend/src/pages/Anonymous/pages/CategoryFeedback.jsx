@@ -1,8 +1,9 @@
 // src/pages/CategoryFeedback.jsx
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getFeedbackByCategory } from "../api/feedbackApi";
 import FeedbackList from "../components/FeedbackList";
+import FeedbackModal from "../components/FeedbackModal";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
 import GoBackButton from "../../../components/GoBackButton";
@@ -11,8 +12,8 @@ import Loading from "../../../components/Loading";
 export default function CategoryFeedback() {
     const [feedbacks, setFeedbacks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const { category } = useParams();
-    const navigate = useNavigate();
 
     useEffect(() => {
         setIsLoading(true);
@@ -40,7 +41,7 @@ export default function CategoryFeedback() {
                         </div>
 
                         <button
-                            onClick={() => navigate('/submit')}
+                            onClick={() => setIsModalOpen(true)}
                             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#e50914] to-[#b00020] px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5"
                         >
                             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,6 +60,8 @@ export default function CategoryFeedback() {
             </main>
 
             <Footer />
+            
+            <FeedbackModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
     );
 }
