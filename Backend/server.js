@@ -21,6 +21,7 @@ const cookieParser = require('cookie-parser');
 
 const cors = require('cors');
 const { auth } = require('firebase-admin');
+const initCleanupJob = require('./src/jobs/cleancleanupRequests.js');
 
 const FRONTEND_DEV_URL = 'http://localhost:5173';
 const GATEWAY_URL = 'http://localhost:4000';
@@ -59,5 +60,6 @@ app.use('/api/marketplace', marketplaceRoutes)
 
 app.listen(4000, () => {
     connectDB();
+    initCleanupJob()
     console.log('Server running on 4000');
 });
