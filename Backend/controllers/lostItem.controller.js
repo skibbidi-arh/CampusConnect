@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { createNotification } = require('../utils/notificationHelper');
 
 exports.createLostItem = async (req, res) => {
     try {
@@ -36,6 +37,15 @@ exports.createLostItem = async (req, res) => {
             message: "Lost item reported successfully",
             item: newItem
         });
+
+        // Broadcast notification to all users
+        await createNotification(
+            'lost_found',
+            'New Lost Item Posted',
+            `A new lost item "${name}" was posted. Location: ${location || 'N/A'}.`,
+            'all',
+            { itemId: newItem.item_id }
+        );
 
     } catch (error) {
         console.error("CREATE LOST ITEM ERROR:", error);

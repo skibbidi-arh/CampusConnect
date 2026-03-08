@@ -5,6 +5,7 @@ const adminAuth = require("../firebase.js");
 const Society = require("../models/Society.js");
 const Event = require("../models/Event.js");
 const Feedback = require("../models/Feedback.js");
+const { createNotification } = require('../utils/notificationHelper');
 
 // Hardcoded administrator emails
 const ADMINISTRATOR_EMAILS = ["ridwankhan@iut-dhaka.edu"];
@@ -249,6 +250,25 @@ exports.approveAdminRequest = async (req, res) => {
 
     await society.save();
 
+    // Notify the requester
+    try {
+      const requesterUser = await prisma.users.findUnique({
+        where: { email: request.userEmail },
+        select: { users_id: true }
+      });
+      if (requesterUser) {
+        await createNotification(
+          'society',
+          'Admin Request Approved 🎉',
+          `Congratulations! Your request to become an admin of "${society.name}" has been approved.`,
+          requesterUser.users_id,
+          { societyId: societyId }
+        );
+      }
+    } catch (lookupErr) {
+      console.error('[Notification] Requester lookup failed:', lookupErr.message);
+    }
+
     res.status(200).json({
       success: true,
       message: `${request.userName} has been approved as an admin for ${society.name}`,
@@ -305,6 +325,25 @@ exports.rejectAdminRequest = async (req, res) => {
     request.status = "rejected";
 
     await society.save();
+
+    // Notify the requester
+    try {
+      const requesterUser = await prisma.users.findUnique({
+        where: { email: request.userEmail },
+        select: { users_id: true }
+      });
+      if (requesterUser) {
+        await createNotification(
+          'society',
+          'Admin Request Reviewed',
+          `Your request to become an admin of "${society.name}" was not approved at this time.`,
+          requesterUser.users_id,
+          { societyId: societyId }
+        );
+      }
+    } catch (lookupErr) {
+      console.error('[Notification] Requester lookup failed:', lookupErr.message);
+    }
 
     res.status(200).json({
       success: true,
