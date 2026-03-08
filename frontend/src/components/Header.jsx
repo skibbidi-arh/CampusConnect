@@ -52,6 +52,7 @@ export default function Header({ onMenuToggle, showMenuButton = true, handlelogo
             <div className="flex items-center gap-3">
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-semibold text-white">{User?.user_name || User?.user?.user_name}</p>
+                <p className="text-xs text-white/80">{User?.student_id || User?.user?.student_id}</p>
               </div>
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}

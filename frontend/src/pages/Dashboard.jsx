@@ -25,14 +25,14 @@ export default function Dashboard() {
   const features = [
     {
       id: 1,
-      title: 'Unified Event Calendar',
-      description: 'Master view of campus events, club activities, and reminders',
+      title: 'Societies',
+      description: 'Explore campus clubs, societies, and student organizations',
       icon: (
         <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
       ),
-      link: '/calendar',
+      link: '/societies',
       color: 'from-[#e50914] to-[#b00020]'
     },
     {
@@ -110,14 +110,28 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Top Navbar */}
-      <Header handlelogout={handlelogout} onProfileClick={() => setProfileOpen(true)} />
+    <div 
+      className="flex min-h-screen flex-col relative"
+      style={{
+        backgroundImage: 'url(/campus-background.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Background Overlay - adjusted for high-res image clarity */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/25 to-black/40" style={{ zIndex: 0 }} />
+      
+      {/* Content Wrapper */}
+      <div className="relative z-10 flex min-h-screen flex-col">
+        {/* Top Navbar */}
+        <Header handlelogout={handlelogout} onProfileClick={() => setProfileOpen(true)} />
 
         {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
           {/* Welcome Section */}
-          <div className="relative mb-8 overflow-hidden rounded-2xl bg-white p-8 shadow-lg border-l-4 border-[#e50914] animate-[fade-up_700ms_ease-out_both]">
+          <div className="relative mb-8 overflow-hidden rounded-2xl bg-white/95 backdrop-blur-sm p-8 shadow-2xl border-l-4 border-[#e50914] animate-[fade-up_700ms_ease-out_both]">
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#e50914]/5 to-transparent rounded-full -mr-32 -mt-32" aria-hidden="true" />
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-3">
@@ -147,7 +161,7 @@ export default function Dashboard() {
               <a
                 key={feature.id}
                 href={feature.id === 5 ? "/home" : feature.link}
-                className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl animate-[pop-in_550ms_cubic-bezier(0.22,1,0.36,1)_both]"
+                className="group relative overflow-hidden rounded-2xl bg-white/95 backdrop-blur-sm p-6 shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-[pop-in_550ms_cubic-bezier(0.22,1,0.36,1)_both]"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 {/* Card Background Pattern */}
@@ -185,16 +199,17 @@ export default function Dashboard() {
           </div>
         </main>
 
-      {/* Integration of Profile Sidebar */}
-      <ProfileSidebar
-        user={User}
-        isOpen={profileOpen}
-        onClose={() => setProfileOpen(false)}
-        onUpdate={handleProfileUpdate}
-      />
+        {/* Integration of Profile Sidebar */}
+        <ProfileSidebar
+          user={User}
+          isOpen={profileOpen}
+          onClose={() => setProfileOpen(false)}
+          onUpdate={handleProfileUpdate}
+        />
 
-      {/* Footer */}
-      <Footer />
+        {/* Footer */}
+        <Footer />
+      </div>
 
       <style>{`
         @keyframes pop-in { 

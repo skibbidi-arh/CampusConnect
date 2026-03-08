@@ -22,6 +22,9 @@ model Users {
   phone_number  String?
   gender        String?
   image         String?
+  dept          String?           // Department
+  batch         String?           // Batch/Year
+  student_id    String?           // Student/User ID
 
 
   bloodRequests BloodRequest[]
