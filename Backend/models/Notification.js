@@ -12,7 +12,8 @@ const notificationSchema = new mongoose.Schema(
                 'society',
                 'lost_found',
                 'roommate',
-                'feedback'
+                'feedback',
+                'blood'
             ]
         },
         title: {

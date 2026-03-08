@@ -4,6 +4,7 @@ const {
   transformBloodRequestToNotification,
 } = require("../src/services/bloodNotificationTransformer");
 const prisma = new PrismaClient();
+const { createNotification } = require('../utils/notificationHelper');
 
 exports.createBloodRequest = async (req, res) => {
   const requesterId = req.verifiedUser.user_id;
@@ -73,6 +74,16 @@ exports.createBloodRequest = async (req, res) => {
         console.error("Error in notification transformer:", error);
         // Don't throw - this shouldn't affect the API response
       }
+
+      // Also push a live-feed broadcast notification to all users
+      const requesterName = newRequest.requester?.user_name || 'Someone';
+      await createNotification(
+        'blood',
+        `🩸 Urgent Blood Request — ${blood_group}`,
+        `${requesterName} urgently needs ${blood_group} blood at ${location}. Deadline: ${new Date(deadline).toLocaleDateString()}.`,
+        'all',
+        { requestId: newRequest.request_id, blood_group, location }
+      );
     });
   } catch (error) {
     console.error("Error during blood request creation:", error);

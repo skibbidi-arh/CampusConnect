@@ -11,6 +11,7 @@ const TYPE_META = {
     lost_found: { label: "Lost & Found", color: "bg-yellow-500" },
     roommate: { label: "Roommate", color: "bg-green-500" },
     feedback: { label: "Feedback", color: "bg-gray-500" },
+    blood: { label: "Blood Request", color: "bg-rose-700" },
 };
 
 function timeAgo(dateStr) {
