@@ -1,17 +1,18 @@
 const Feedback = require("../models/Feedback");
 const { validationResult } = require("express-validator");
+const { createNotification } = require('../utils/notificationHelper');
 
 // POST /api/feedback
 exports.createFeedback = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-       
+
         return res.status(400).json({ errors: errors.array() });
     }
 
     try {
         const { category, title, message } = req.body;
-        console.log(category,title,message)
+        console.log(category, title, message)
 
         const feedback = await Feedback.create({
             category,
@@ -51,11 +52,11 @@ exports.getFeedbackByCategory = async (req, res) => {
 exports.getFeedbackById = async (req, res) => {
     try {
         const feedback = await Feedback.findById(req.params.id);
-        
+
         if (!feedback) {
             return res.status(404).json({ message: "Feedback not found" });
         }
-        
+
         res.json(feedback);
     } catch (error) {
         if (error.kind === "ObjectId") {
@@ -74,9 +75,9 @@ exports.addComment = async (req, res) => {
 
     try {
         const { author, message } = req.body;
-        
+
         const feedback = await Feedback.findById(req.params.id);
-        
+
         if (!feedback) {
             return res.status(404).json({ message: "Feedback not found" });
         }
@@ -89,6 +90,17 @@ exports.addComment = async (req, res) => {
 
         feedback.comments.push(newComment);
         await feedback.save();
+
+        // Notify the feedback submitter if they are a known user (not anonymous)
+        if (feedback.submitterId) {
+            await createNotification(
+                'feedback',
+                'New Comment on Your Feedback',
+                `Someone commented on your feedback "${feedback.title || feedback.message.slice(0, 40)}...".`,
+                feedback.submitterId,
+                { feedbackId: feedback._id.toString() }
+            );
+        }
 
         res.status(201).json(feedback);
     } catch (error) {
@@ -103,9 +115,9 @@ exports.addComment = async (req, res) => {
 exports.deleteComment = async (req, res) => {
     try {
         const { feedbackId, commentId } = req.params;
-        
+
         const feedback = await Feedback.findById(feedbackId);
-        
+
         if (!feedback) {
             return res.status(404).json({ message: "Feedback not found" });
         }
@@ -134,13 +146,13 @@ exports.deleteComment = async (req, res) => {
 exports.likeFeedback = async (req, res) => {
     try {
         const { userId } = req.body;
-        
+
         if (!userId) {
             return res.status(400).json({ message: "User ID required" });
         }
 
         const feedback = await Feedback.findById(req.params.id);
-        
+
         if (!feedback) {
             return res.status(404).json({ message: "Feedback not found" });
         }
@@ -152,6 +164,17 @@ exports.likeFeedback = async (req, res) => {
 
         feedback.likes.push(userId);
         await feedback.save();
+
+        // Notify the feedback submitter if they are a known user
+        if (feedback.submitterId && String(feedback.submitterId) !== String(userId)) {
+            await createNotification(
+                'feedback',
+                'Your Feedback Was Liked 👍',
+                `Someone liked your feedback "${feedback.title || feedback.message.slice(0, 40)}...".`,
+                feedback.submitterId,
+                { feedbackId: feedback._id.toString() }
+            );
+        }
 
         res.json(feedback);
     } catch (error) {
@@ -166,13 +189,13 @@ exports.likeFeedback = async (req, res) => {
 exports.unlikeFeedback = async (req, res) => {
     try {
         const { userId } = req.body;
-        
+
         if (!userId) {
             return res.status(400).json({ message: "User ID required" });
         }
 
         const feedback = await Feedback.findById(req.params.id);
-        
+
         if (!feedback) {
             return res.status(404).json({ message: "Feedback not found" });
         }
@@ -195,19 +218,19 @@ exports.likeComment = async (req, res) => {
     try {
         const { feedbackId, commentId } = req.params;
         const { userId } = req.body;
-        
+
         if (!userId) {
             return res.status(400).json({ message: "User ID required" });
         }
 
         const feedback = await Feedback.findById(feedbackId);
-        
+
         if (!feedback) {
             return res.status(404).json({ message: "Feedback not found" });
         }
 
         const comment = feedback.comments.id(commentId);
-        
+
         if (!comment) {
             return res.status(404).json({ message: "Comment not found" });
         }
@@ -234,19 +257,19 @@ exports.unlikeComment = async (req, res) => {
     try {
         const { feedbackId, commentId } = req.params;
         const { userId } = req.body;
-        
+
         if (!userId) {
             return res.status(400).json({ message: "User ID required" });
         }
 
         const feedback = await Feedback.findById(feedbackId);
-        
+
         if (!feedback) {
             return res.status(404).json({ message: "Feedback not found" });
         }
 
         const comment = feedback.comments.id(commentId);
-        
+
         if (!comment) {
             return res.status(404).json({ message: "Comment not found" });
         }

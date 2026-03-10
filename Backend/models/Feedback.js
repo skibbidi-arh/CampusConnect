@@ -74,6 +74,11 @@ const feedbackSchema = new mongoose.Schema(
         comments: {
             type: [commentSchema],
             default: []
+        },
+        // Optional: set when the submitter is a logged-in user (link to Postgres users_id)
+        submitterId: {
+            type: String,
+            default: null
         }
     },
     {

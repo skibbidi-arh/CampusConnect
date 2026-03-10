@@ -14,6 +14,7 @@ const societyRoutes = require('./routes/society.routes.js')
 const eventRoutes = require('./routes/event.routes.js')
 const administratorRoutes = require('./routes/administrator.routes.js')
 const marketplaceRoutes = require('./routes/marketplace.routes.js')
+const notificationRoutes = require('./routes/notification.routes.js')
 const httpproxy = require('http-proxy')
 
 
@@ -52,6 +53,7 @@ app.use('/api', societyRoutes)
 app.use('/api', eventRoutes)
 app.use('/api/administrator', administratorRoutes)
 app.use('/api/marketplace', marketplaceRoutes)
+app.use('/api', notificationRoutes)
 
 
 

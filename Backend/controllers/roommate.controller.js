@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { createNotification } = require('../utils/notificationHelper');
 
 exports.createListing = async (req, res) => {
     try {
@@ -22,6 +23,15 @@ exports.createListing = async (req, res) => {
         });
 
         res.status(201).json({ success: true, listing: newListing });
+
+        // Broadcast notification to all users
+        await createNotification(
+            'roommate',
+            'New Roommate Wanted Ad',
+            `A new roommate ad was posted for area: ${area}. Rent: ${rent} BDT/month.`,
+            'all',
+            { listingId: newListing.id }
+        );
     } catch (error) {
         console.error("CREATE ERROR:", error.message);
         res.status(500).json({ success: false, message: "Internal Server Error" });

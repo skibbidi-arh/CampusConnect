@@ -1,5 +1,6 @@
 const MarketplacePost = require('../models/MarketplacePost');
 const prisma = require('../src/config/prisma');
+const { createNotification, createNotificationForMany } = require('../utils/notificationHelper');
 
 // @desc    Create a new post
 // @route   POST /api/marketplace
@@ -262,6 +263,16 @@ const submitPreOrder = async (req, res) => {
         });
 
         const updatedPost = await post.save();
+
+        // Notify seller about new pre-order
+        await createNotification(
+            'pre_order',
+            'New Pre-Order Received',
+            `${userName} submitted a pre-order for "${post.title}" (Txn: ${transactionId.trim()})`,
+            post.sellerId,
+            { postId: post._id.toString(), transactionId: transactionId.trim() }
+        );
+
         res.status(200).json({ success: true, post: updatedPost, message: 'Pre-order submitted successfully' });
     } catch (error) {
         console.error('Error in submitPreOrder:', error);
@@ -294,6 +305,15 @@ const verifyPreOrder = async (req, res) => {
 
         preOrder.verified = true;
         const updatedPost = await post.save();
+
+        // Notify buyer that their pre-order was verified
+        await createNotification(
+            'pre_order',
+            'Pre-Order Verified ✓',
+            `Your payment for "${post.title}" has been confirmed. The product is being prepared.`,
+            preOrder.userId,
+            { postId: post._id.toString(), preOrderId }
+        );
 
         res.status(200).json({ success: true, post: updatedPost, message: 'Pre-order verified successfully' });
     } catch (error) {
@@ -335,13 +355,13 @@ const markPreOrderCollected = async (req, res) => {
         } else {
             preOrder.collectedAt = null;
         }
-        
+
         const updatedPost = await post.save();
 
-        res.status(200).json({ 
-            success: true, 
-            post: updatedPost, 
-            message: preOrder.collected ? 'Order marked as collected' : 'Collection status removed' 
+        res.status(200).json({
+            success: true,
+            post: updatedPost,
+            message: preOrder.collected ? 'Order marked as collected' : 'Collection status removed'
         });
     } catch (error) {
         console.error('Error in markPreOrderCollected:', error);
@@ -378,6 +398,21 @@ const markProductReady = async (req, res) => {
         post.collectionLocation = collectionLocation;
         const updatedPost = await post.save();
 
+        // Notify all verified pre-order buyers
+        const verifiedBuyerIds = post.preOrders
+            .filter(po => po.verified)
+            .map(po => po.userId);
+
+        if (verifiedBuyerIds.length > 0) {
+            await createNotificationForMany(
+                'pre_order',
+                'Product Ready for Collection 🎉',
+                `"${post.title}" is ready! Collect it at: ${collectionLocation}`,
+                verifiedBuyerIds,
+                { postId: post._id.toString(), collectionLocation }
+            );
+        }
+
         res.status(200).json({ success: true, post: updatedPost, message: 'Product marked as ready' });
     } catch (error) {
         console.error('Error in markProductReady:', error);
@@ -409,10 +444,10 @@ const togglePreOrder = async (req, res) => {
         post.preOrderStopped = !post.preOrderStopped;
         const updatedPost = await post.save();
 
-        res.status(200).json({ 
-            success: true, 
-            post: updatedPost, 
-            message: post.preOrderStopped ? 'Pre-orders stopped' : 'Pre-orders resumed' 
+        res.status(200).json({
+            success: true,
+            post: updatedPost,
+            message: post.preOrderStopped ? 'Pre-orders stopped' : 'Pre-orders resumed'
         });
     } catch (error) {
         console.error('Error in togglePreOrder:', error);
@@ -457,7 +492,7 @@ const getPreOrders = async (req, res) => {
 const getMyOrders = async (req, res) => {
     try {
         const userId = req.verifiedUser.user_id;
-        
+
         // Find all posts where the user has a pre-order
         const posts = await MarketplacePost.find({
             'preOrders.userId': userId

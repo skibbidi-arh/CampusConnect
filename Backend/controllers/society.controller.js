@@ -1,17 +1,19 @@
 const Society = require('../models/Society');
+const prisma = require('../src/config/prisma');
+const { createNotification, createNotificationForMany } = require('../utils/notificationHelper');
 
 // Get all societies
 exports.getAllSocieties = async (req, res) => {
   try {
     const societies = await Society.find().select('-__v');
-    
+
     const societiesWithCount = societies.map(society => ({
       ...society.toObject(),
       memberCount: society.followers.length,
       isFollowing: false, // TODO: Check against logged-in user
       isAdmin: false // TODO: Check against logged-in user
     }));
-    
+
     res.status(200).json({
       success: true,
       societies: societiesWithCount
@@ -32,17 +34,17 @@ exports.getSocietyById = async (req, res) => {
     const { id } = req.params;
     const { userEmail } = req.query;
     const society = await Society.findById(id).select('-__v');
-    
+
     if (!society) {
       return res.status(404).json({
         success: false,
         message: 'Society not found'
       });
     }
-    
+
     const isFollowing = userEmail ? society.followers.includes(userEmail) : false;
     const isAdmin = userEmail ? society.admins.includes(userEmail) : false;
-    
+
     // Check if user has requested admin status
     let adminRequestStatus = null;
     if (userEmail && society.adminRequests) {
@@ -51,7 +53,7 @@ exports.getSocietyById = async (req, res) => {
         adminRequestStatus = 'pending';
       }
     }
-    
+
     const societyData = {
       ...society.toObject(),
       memberCount: society.followers.length,
@@ -59,7 +61,7 @@ exports.getSocietyById = async (req, res) => {
       isAdmin,
       adminRequestStatus
     };
-    
+
     res.status(200).json({
       success: true,
       society: societyData
@@ -87,7 +89,7 @@ exports.createSociety = async (req, res) => {
       facebook,
       website
     } = req.body;
-    
+
     // Check if society already exists
     const existingSociety = await Society.findOne({ name });
     if (existingSociety) {
@@ -96,7 +98,7 @@ exports.createSociety = async (req, res) => {
         message: 'Society with this name already exists'
       });
     }
-    
+
     const society = new Society({
       name,
       logo,
@@ -111,9 +113,9 @@ exports.createSociety = async (req, res) => {
       admins: [],
       followers: []
     });
-    
+
     await society.save();
-    
+
     res.status(201).json({
       success: true,
       message: 'Society created successfully',
@@ -134,7 +136,7 @@ exports.updateSociety = async (req, res) => {
   try {
     const { id } = req.params;
     const { userEmail, ...updates } = req.body;
-    
+
     // Verify user is an admin
     const society = await Society.findById(id);
     if (!society) {
@@ -143,14 +145,14 @@ exports.updateSociety = async (req, res) => {
         message: 'Society not found'
       });
     }
-    
+
     if (userEmail && !society.admins.includes(userEmail)) {
       return res.status(403).json({
         success: false,
         message: 'Only admins can update society information'
       });
     }
-    
+
     // Remove fields that shouldn't be updated directly
     delete updates.admins;
     delete updates.followers;
@@ -158,13 +160,13 @@ exports.updateSociety = async (req, res) => {
     delete updates.__v;
     delete updates.createdAt;
     delete updates.updatedAt;
-    
+
     const updatedSociety = await Society.findByIdAndUpdate(
       id,
       { $set: updates },
       { new: true, runValidators: true }
     );
-    
+
     res.status(200).json({
       success: true,
       message: 'Society updated successfully',
@@ -185,30 +187,30 @@ exports.toggleFollow = async (req, res) => {
   try {
     const { id } = req.params;
     const { userEmail } = req.body; // TODO: Get from auth token
-    
+
     if (!userEmail) {
       return res.status(400).json({
         success: false,
         message: 'User email is required'
       });
     }
-    
+
     const society = await Society.findById(id);
-    
+
     if (!society) {
       return res.status(404).json({
         success: false,
         message: 'Society not found'
       });
     }
-    
+
     const isFollowing = society.followers.includes(userEmail);
-    
+
     if (isFollowing) {
       // Unfollow
       society.followers = society.followers.filter(email => email !== userEmail);
       await society.save();
-      
+
       res.status(200).json({
         success: true,
         message: 'Unfollowed society',
@@ -218,7 +220,7 @@ exports.toggleFollow = async (req, res) => {
       // Follow
       society.followers.push(userEmail);
       await society.save();
-      
+
       res.status(200).json({
         success: true,
         message: 'Following society',
@@ -240,58 +242,80 @@ exports.joinAsAdmin = async (req, res) => {
   try {
     const { id } = req.params;
     const { userEmail, userName } = req.body; // TODO: Get from auth token
-    
+
     if (!userEmail) {
       return res.status(400).json({
         success: false,
         message: 'User email is required'
       });
     }
-    
+
     const society = await Society.findById(id);
-    
+
     if (!society) {
       return res.status(404).json({
         success: false,
         message: 'Society not found'
       });
     }
-    
+
     const isAdmin = society.admins.includes(userEmail);
-    
+
     if (isAdmin) {
       return res.status(400).json({
         success: false,
         message: 'Already an admin of this society'
       });
     }
-    
+
     // Check if user already has a pending request
     const existingRequest = society.adminRequests?.find(
       req => req.userEmail === userEmail && req.status === 'pending'
     );
-    
+
     if (existingRequest) {
       return res.status(400).json({
         success: false,
         message: 'You already have a pending admin request for this society'
       });
     }
-    
+
     // Add admin request instead of directly adding to admins
     if (!society.adminRequests) {
       society.adminRequests = [];
     }
-    
+
     society.adminRequests.push({
       userEmail,
       userName: userName || userEmail.split('@')[0],
       requestedAt: new Date(),
       status: 'pending'
     });
-    
+
     await society.save();
-    
+
+    // Notify all existing admins about the new request
+    if (society.admins && society.admins.length > 0) {
+      try {
+        const adminUsers = await prisma.users.findMany({
+          where: { email: { in: society.admins } },
+          select: { users_id: true }
+        });
+        const adminIds = adminUsers.map(u => u.users_id);
+        if (adminIds.length > 0) {
+          await createNotificationForMany(
+            'society',
+            'New Admin Request',
+            `${userName || userEmail} has requested to become an admin of "${society.name}". Please review.`,
+            adminIds,
+            { societyId: id, requesterEmail: userEmail }
+          );
+        }
+      } catch (lookupErr) {
+        console.error('[Notification] Admin lookup failed:', lookupErr.message);
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: 'Admin request sent successfully. Awaiting administrator approval.',
@@ -312,26 +336,26 @@ exports.leaveAdmin = async (req, res) => {
   try {
     const { id } = req.params;
     const { userEmail } = req.body; // TODO: Get from auth token
-    
+
     if (!userEmail) {
       return res.status(400).json({
         success: false,
         message: 'User email is required'
       });
     }
-    
+
     const society = await Society.findById(id);
-    
+
     if (!society) {
       return res.status(404).json({
         success: false,
         message: 'Society not found'
       });
     }
-    
+
     society.admins = society.admins.filter(email => email !== userEmail);
     await society.save();
-    
+
     res.status(200).json({
       success: true,
       message: 'Left admin role',
@@ -352,16 +376,16 @@ exports.addPanelMember = async (req, res) => {
   try {
     const { id } = req.params;
     const { userEmail, name, position, department, batch } = req.body;
-    
+
     const society = await Society.findById(id);
-    
+
     if (!society) {
       return res.status(404).json({
         success: false,
         message: 'Society not found'
       });
     }
-    
+
     // Verify user is an admin
     if (userEmail && !society.admins.includes(userEmail)) {
       return res.status(403).json({
@@ -369,10 +393,10 @@ exports.addPanelMember = async (req, res) => {
         message: 'Only admins can add panel members'
       });
     }
-    
+
     society.panelMembers.push({ name, position, department, batch });
     await society.save();
-    
+
     res.status(200).json({
       success: true,
       message: 'Panel member added',
@@ -393,16 +417,16 @@ exports.updatePanelMember = async (req, res) => {
   try {
     const { id, memberId } = req.params;
     const { userEmail, name, position, department, batch } = req.body;
-    
+
     const society = await Society.findById(id);
-    
+
     if (!society) {
       return res.status(404).json({
         success: false,
         message: 'Society not found'
       });
     }
-    
+
     // Verify user is an admin
     if (userEmail && !society.admins.includes(userEmail)) {
       return res.status(403).json({
@@ -410,7 +434,7 @@ exports.updatePanelMember = async (req, res) => {
         message: 'Only admins can update panel members'
       });
     }
-    
+
     const member = society.panelMembers.id(memberId);
     if (!member) {
       return res.status(404).json({
@@ -418,14 +442,14 @@ exports.updatePanelMember = async (req, res) => {
         message: 'Panel member not found'
       });
     }
-    
+
     member.name = name || member.name;
     member.position = position || member.position;
     member.department = department || member.department;
     member.batch = batch || member.batch;
-    
+
     await society.save();
-    
+
     res.status(200).json({
       success: true,
       message: 'Panel member updated',
@@ -446,16 +470,16 @@ exports.deletePanelMember = async (req, res) => {
   try {
     const { id, memberId } = req.params;
     const { userEmail } = req.body;
-    
+
     const society = await Society.findById(id);
-    
+
     if (!society) {
       return res.status(404).json({
         success: false,
         message: 'Society not found'
       });
     }
-    
+
     // Verify user is an admin
     if (userEmail && !society.admins.includes(userEmail)) {
       return res.status(403).json({
@@ -463,7 +487,7 @@ exports.deletePanelMember = async (req, res) => {
         message: 'Only admins can delete panel members'
       });
     }
-    
+
     const member = society.panelMembers.id(memberId);
     if (!member) {
       return res.status(404).json({
@@ -471,10 +495,10 @@ exports.deletePanelMember = async (req, res) => {
         message: 'Panel member not found'
       });
     }
-    
+
     member.deleteOne();
     await society.save();
-    
+
     res.status(200).json({
       success: true,
       message: 'Panel member deleted',
@@ -496,16 +520,16 @@ exports.addPastEvent = async (req, res) => {
   try {
     const { id } = req.params;
     const { userEmail, title, date, image, description } = req.body;
-    
+
     const society = await Society.findById(id);
-    
+
     if (!society) {
       return res.status(404).json({
         success: false,
         message: 'Society not found'
       });
     }
-    
+
     // Verify user is an admin
     if (userEmail && !society.admins.includes(userEmail)) {
       return res.status(403).json({
@@ -513,10 +537,10 @@ exports.addPastEvent = async (req, res) => {
         message: 'Only admins can add past events'
       });
     }
-    
+
     society.pastGallery.push({ title, date, image, description });
     await society.save();
-    
+
     res.status(200).json({
       success: true,
       message: 'Past event added',
@@ -537,16 +561,16 @@ exports.updatePastEvent = async (req, res) => {
   try {
     const { id, eventId } = req.params;
     const { userEmail, title, date, image, description } = req.body;
-    
+
     const society = await Society.findById(id);
-    
+
     if (!society) {
       return res.status(404).json({
         success: false,
         message: 'Society not found'
       });
     }
-    
+
     // Verify user is an admin
     if (userEmail && !society.admins.includes(userEmail)) {
       return res.status(403).json({
@@ -554,7 +578,7 @@ exports.updatePastEvent = async (req, res) => {
         message: 'Only admins can update past events'
       });
     }
-    
+
     const event = society.pastGallery.id(eventId);
     if (!event) {
       return res.status(404).json({
@@ -562,14 +586,14 @@ exports.updatePastEvent = async (req, res) => {
         message: 'Past event not found'
       });
     }
-    
+
     event.title = title || event.title;
     event.date = date || event.date;
     event.image = image || event.image;
     event.description = description !== undefined ? description : event.description;
-    
+
     await society.save();
-    
+
     res.status(200).json({
       success: true,
       message: 'Past event updated',
@@ -590,16 +614,16 @@ exports.deletePastEvent = async (req, res) => {
   try {
     const { id, eventId } = req.params;
     const { userEmail } = req.body;
-    
+
     const society = await Society.findById(id);
-    
+
     if (!society) {
       return res.status(404).json({
         success: false,
         message: 'Society not found'
       });
     }
-    
+
     // Verify user is an admin
     if (userEmail && !society.admins.includes(userEmail)) {
       return res.status(403).json({
@@ -607,7 +631,7 @@ exports.deletePastEvent = async (req, res) => {
         message: 'Only admins can delete past events'
       });
     }
-    
+
     const event = society.pastGallery.id(eventId);
     if (!event) {
       return res.status(404).json({
@@ -615,10 +639,10 @@ exports.deletePastEvent = async (req, res) => {
         message: 'Past event not found'
       });
     }
-    
+
     event.deleteOne();
     await society.save();
-    
+
     res.status(200).json({
       success: true,
       message: 'Past event deleted',
@@ -638,18 +662,18 @@ exports.deletePastEvent = async (req, res) => {
 exports.deleteSociety = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const society = await Society.findById(id);
-    
+
     if (!society) {
       return res.status(404).json({
         success: false,
         message: 'Society not found'
       });
     }
-    
+
     await Society.findByIdAndDelete(id);
-    
+
     res.status(200).json({
       success: true,
       message: `Society "${society.name}" has been deleted successfully`
@@ -669,33 +693,33 @@ exports.removeAdminFromSociety = async (req, res) => {
   try {
     const { id } = req.params;
     const { adminEmail } = req.body;
-    
+
     if (!adminEmail) {
       return res.status(400).json({
         success: false,
         message: 'Admin email is required'
       });
     }
-    
+
     const society = await Society.findById(id);
-    
+
     if (!society) {
       return res.status(404).json({
         success: false,
         message: 'Society not found'
       });
     }
-    
+
     if (!society.admins.includes(adminEmail)) {
       return res.status(400).json({
         success: false,
         message: 'This user is not an admin of this society'
       });
     }
-    
+
     society.admins = society.admins.filter(email => email !== adminEmail);
     await society.save();
-    
+
     res.status(200).json({
       success: true,
       message: `Admin removed from "${society.name}" successfully`,

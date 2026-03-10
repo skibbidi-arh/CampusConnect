@@ -8,6 +8,7 @@ import Weather from "../components/Weather";
 import ChatbotPage from "./Chatbot/ChatbotPage";
 import { TbMessageChatbotFilled } from "react-icons/tb";
 import ChatbotWidget from "../components/ChatbotWidget";
+import LiveFeed from "../components/LiveFeed";
 
 export default function Dashboard() {
   const [profileOpen, setProfileOpen] = useState(false);
@@ -294,100 +295,7 @@ export default function Dashboard() {
           {/* Main Dashboard Grid - Features */}
           <div className="lg:col-span-1 ">
             <div className="sticky top-20 space-y-3">
-              {/* Live Feed Card */}
-              <div className="rounded-lg   bg-white/90 shadow-lg overflow-hidden border-l-4 border-[#e50914] transition-all duration-300 hover:shadow-xl">
-                <div className="bg-gradient-to-r from-[#e50914]/10 to-[#b00020]/10 px-4 py-3 border-b border-[#e50914]/20">
-                  <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                    <svg
-                      className="w-4 h-4 text-[#e50914]"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    Live Feed
-                  </h3>
-                </div>
-
-                {/* Notifications List */}
-                <div className="max-h-96 overflow-y-auto">
-                  {/* Sample Notification 1 */}
-                  <div className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 cursor-pointer group">
-                    <div className="flex gap-3">
-                      <div className="w-2 h-2 rounded-full bg-[#e50914] mt-1.5 flex-shrink-0 animate-pulse"></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-gray-900 group-hover:text-[#b00020] transition-colors">
-                          New Donor
-                        </p>
-                        <p className="text-xs text-gray-600 mt-0.5">
-                          <span className="font-medium">Ahmed Khan</span> became
-                          a blood donor
-                        </p>
-                        <p className="text-xs text-gray-400 mt-1">2 min ago</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Sample Notification 2 */}
-                  <div className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 cursor-pointer group">
-                    <div className="flex gap-3">
-                      <div className="w-2 h-2 rounded-full bg-[#e50914] mt-1.5 flex-shrink-0 animate-pulse"></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-gray-900 group-hover:text-[#b00020] transition-colors">
-                          Society Event
-                        </p>
-                        <p className="text-xs text-gray-600 mt-0.5">
-                          <span className="font-medium">Tech Society</span>{" "}
-                          organized a new workshop
-                        </p>
-                        <p className="text-xs text-gray-400 mt-1">15 min ago</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Sample Notification 3 */}
-                  <div className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 cursor-pointer group">
-                    <div className="flex gap-3">
-                      <div className="w-2 h-2 rounded-full bg-[#e50914] mt-1.5 flex-shrink-0 animate-pulse"></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-gray-900 group-hover:text-[#b00020] transition-colors">
-                          Item Lost
-                        </p>
-                        <p className="text-xs text-gray-600 mt-0.5">
-                          Someone posted about a lost{" "}
-                          <span className="font-medium">student ID</span>
-                        </p>
-                        <p className="text-xs text-gray-400 mt-1">45 min ago</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Sample Notification 4 */}
-                  <div className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 cursor-pointer group">
-                    <div className="flex gap-3">
-                      <div className="w-2 h-2 rounded-full bg-[#e50914] mt-1.5 flex-shrink-0 animate-pulse"></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-gray-900 group-hover:text-[#b00020] transition-colors">
-                          Marketplace
-                        </p>
-                        <p className="text-xs text-gray-600 mt-0.5">
-                          <span className="font-medium">3 new items</span> added
-                          to marketplace
-                        </p>
-                        <p className="text-xs text-gray-400 mt-1">1 hour ago</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* View All Button */}
-                <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-center">
-                  <button className="text-xs font-semibold text-[#b00020] hover:text-[#e50914] transition-colors">
-                    View All Notifications
-                  </button>
-                </div>
-              </div>
-              {/* <ChatbotPage /> */}
+              <LiveFeed />
             </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10">
