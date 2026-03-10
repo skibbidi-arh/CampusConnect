@@ -215,6 +215,12 @@ export default function Dashboard() {
         transform: translateX(100%); 
       }
     }
+    @keyframes ping {
+      75%, 100% {
+        transform: scale(2);
+        opacity: 0;
+      }
+    }
   `;
 
   return (
@@ -243,51 +249,78 @@ export default function Dashboard() {
         />
         {/* Main Content */}
         <main className="flex-1 p-3 sm:p-4 lg:p-6">
-          {/* Welcome Section - Compact and Clear */}
-          <div className="relative mb-6 overflow-hidden rounded-xl bg-white/90 shadow-lg border-l-4 border-[#e50914] animate-[fade-up_700ms_ease-out_both] transition-all duration-300 hover:shadow-xl group">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 p-4 relative z-10">
-              {/* User Info - Compact */}
-              <div className="lg:col-span-2 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#e50914] to-[#b00020] flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-105 flex-shrink-0">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
+          {/* Welcome Section - Modern & Attractive */}
+          <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-white/95 via-white/98 to-white/95 backdrop-blur-xl shadow-2xl animate-[fade-up_700ms_ease-out_both] transition-all duration-500 hover:shadow-[0_20px_60px_rgba(229,9,20,0.25)] group">
+            {/* Animated Background Pattern */}
+            <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity duration-500">
+              <div className="absolute inset-0" style={{
+                backgroundImage: 'radial-gradient(circle at 20px 20px, rgba(229, 9, 20, 0.4) 1px, transparent 0)',
+                backgroundSize: '40px 40px'
+              }} />
+            </div>
+            
+            {/* Top Accent Border */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#e50914] via-[#b00020] to-[#e50914] opacity-80" />
+            
+            <div className="relative z-10 p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left: User Welcome Section */}
+                <div className="flex items-center gap-4">
+                  {/* Avatar - Simple and Clean */}
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#e50914] to-[#b00020] flex items-center justify-center shadow-lg">
+                    <svg
+                      className="w-8 h-8 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  </div>
+                  
+                  {/* Welcome Text */}
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-[#b00020] to-gray-900 bg-clip-text text-transparent truncate group-hover:from-[#e50914] group-hover:via-[#b00020] group-hover:to-[#8b0018] transition-all duration-500 mb-1">
+                      Welcome back, {User?.user_name || User?.name || "Guest"}!
+                    </h2>
+                    <div className="flex items-center gap-3 text-sm text-gray-600">
+                      <div className="flex items-center gap-1.5">
+                        <svg className="w-4 h-4 text-[#e50914]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="font-medium">
+                          {new Date().toLocaleDateString("en-US", {
+                            weekday: "long",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </div>
+                      <span className="text-gray-400">•</span>
+                      <div className="flex items-center gap-1.5">
+                        <svg className="w-4 h-4 text-[#e50914]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="font-medium">
+                          {new Date().toLocaleTimeString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-base font-bold text-gray-900 truncate transition-colors duration-300 group-hover:text-[#b00020]">
-                    Welcome, {User?.user_name || User?.name || "Guest"}
-                  </h2>
-                  <p className="text-xs text-gray-600">
-                    {new Date().toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </p>
+
+                {/* Right: Weather Widget */}
+                <div className="transition-all duration-500 group-hover:scale-[1.02] origin-center">
+                  <Weather />
                 </div>
-              </div>
-
-              {/* Status - Center */}
-              <div className="lg:col-span-1 flex gap-2 items-center justify-center">
-                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-50 border border-green-300 text-xs font-medium text-green-700 whitespace-nowrap">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                  Online
-                </span>
-              </div>
-
-              {/* Weather - Integrated */}
-              <div className="lg:col-span-2 transition-all duration-300 group-hover:scale-105 origin-top-right">
-                <Weather />
               </div>
             </div>
           </div>

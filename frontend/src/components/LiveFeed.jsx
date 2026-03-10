@@ -203,17 +203,6 @@ export default function LiveFeed() {
 
                 </h3>
 
-                {unreadCount > 0 && (
-
-                    <button
-                        onClick={handleMarkAllRead}
-                        className="text-xs font-semibold text-red-500 hover:text-red-600 flex-shrink-0 ml-2"
-                    >
-                        Mark all read
-                    </button>
-
-                )}
-
             </div>
 
             {/* Notifications */}

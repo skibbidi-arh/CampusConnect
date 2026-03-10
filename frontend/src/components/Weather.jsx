@@ -131,135 +131,136 @@ export default function Weather() {
   }
 
   return (
-    <div className="rounded-xl bg-gradient-to-br from-white/92 to-white/88 backdrop-blur-md shadow-2xl border-l-4 border-[#e50914] overflow-hidden transition-all duration-300 hover:shadow-[0_25px_60px_rgba(229,9,20,0.3)] hover:-translate-y-1 border-2 border-white/30">
-      {/* Header - Compact and Interactive */}
+    <div className="rounded-xl bg-gradient-to-br from-white/80 via-gray-50/80 to-white/70 backdrop-blur-sm shadow-lg border border-white/40 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:border-[#e50914]/30 group/weather">
+      {/* Header - Elegant and Compact */}
       <div
-        className="bg-gradient-to-r from-[#e50914] via-[#b00020] to-[#8b0018] p-4 cursor-pointer transition-all duration-300 group hover:from-[#b00020] hover:via-[#8b0018] hover:to-[#6a0010] active:scale-95"
+        className="relative bg-gradient-to-r from-[#e50914]/95 via-[#b00020]/95 to-[#e50914]/95 p-4 cursor-pointer transition-all duration-500 hover:from-[#d00813] hover:via-[#a0001c] hover:to-[#d00813] active:scale-[0.98] overflow-hidden"
         onClick={() => setExpanded(!expanded)}
       >
-        <div className="flex items-center justify-between gap-2">
+        {/* Subtle animated background */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_3s_ease-in-out_infinite]" />
+        </div>
+        
+        <div className="relative flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 flex-1">
-            <div className="text-4xl group-hover:scale-125 group-active:scale-95 transition-transform duration-300 origin-left">
-              {getWeatherIcon(weather.weather_code)}
+            <div className="relative">
+              <div className="absolute -inset-2 bg-white/20 rounded-full blur-xl group-hover/weather:bg-white/30 transition-all duration-500" />
+              <div className="relative text-5xl group-hover/weather:scale-110 transition-transform duration-500 drop-shadow-lg">
+                {getWeatherIcon(weather.weather_code)}
+              </div>
             </div>
             <div className="flex-1">
-              <p className="text-xs text-white/70 font-medium">Weather</p>
-              <p className="text-2xl font-bold text-white leading-tight">
-                {Math.round(weather.temperature_2m)}°
+              <p className="text-xs text-white/80 font-semibold tracking-wide uppercase mb-0.5">Live Weather</p>
+              <div className="flex items-baseline gap-1">
+                <p className="text-3xl font-black text-white leading-none tracking-tight">
+                  {Math.round(weather.temperature_2m)}°
+                </p>
+                <span className="text-sm text-white/70 font-medium">celsius</span>
+              </div>
+              <p className="text-xs text-white/70 font-medium mt-0.5">
+                {getWeatherDescription(weather.weather_code)}
               </p>
             </div>
           </div>
-          <div className="flex flex-col items-center gap-1">
+          <button className="flex flex-col items-center gap-1 px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-300 group/btn">
             <svg
-              className={`w-5 h-5 text-white transition-transform duration-300 font-bold ${expanded ? "rotate-180" : ""}`}
+              className={`w-5 h-5 text-white transition-all duration-500 ${expanded ? "rotate-180" : ""} group-hover/btn:scale-110`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              strokeWidth={3}
+              strokeWidth={2.5}
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                d="M19 9l-7 7-7-7"
               />
             </svg>
-            <span className="text-xs text-white/60 font-bold">Tap</span>
-          </div>
+            <span className="text-[10px] text-white/70 font-bold uppercase tracking-wider">Details</span>
+          </button>
         </div>
       </div>
 
-      {/* Content - Collapsible */}
+      {/* Content - Collapsible with modern styling */}
       <div
-        className={`overflow-hidden transition-all duration-300 ${expanded ? "max-h-96" : "max-h-0"}`}
+        className={`overflow-hidden transition-all duration-500 ${expanded ? "max-h-96" : "max-h-0"}`}
       >
-        <div className="p-3 space-y-2 bg-gradient-to-b from-white/50 to-white/30">
-          {/* Condition */}
-          <div className="flex items-center justify-between p-2.5 rounded-lg bg-white/40 hover:bg-white/60 transition-all duration-200 cursor-pointer group active:scale-95 transform">
-            <div className="flex items-center gap-2">
-              <span className="text-[#b00020] font-bold text-xs">●</span>
-              <span className="text-gray-700 font-semibold text-xs">
-                Status
-              </span>
-            </div>
-            <span className="text-gray-900 font-bold text-xs group-hover:text-[#b00020] transition-colors px-2 py-0.5 rounded bg-white/80 group-hover:bg-[#e50914]/10">
-              {getWeatherDescription(weather.weather_code)}
-            </span>
-          </div>
-
-          {/* Feels Like */}
-          <div className="flex items-center justify-between p-2.5 rounded-lg bg-white/40 hover:bg-white/60 transition-all duration-200 cursor-pointer group active:scale-95 transform">
-            <div className="flex items-center gap-2">
-              <span className="text-[#b00020] font-bold text-xs">●</span>
-              <span className="text-gray-700 font-semibold text-xs">Feels</span>
-            </div>
-            <span className="text-gray-900 font-bold text-xs group-hover:text-[#b00020] transition-colors px-2 py-0.5 rounded bg-white/80 group-hover:bg-[#e50914]/10">
-              {Math.round(weather.apparent_temperature)}°
-            </span>
-          </div>
-
-          {/* Humidity with Visual */}
-          <div className="flex items-center justify-between p-2.5 rounded-lg bg-white/40 hover:bg-white/60 transition-all duration-200 group cursor-pointer active:scale-95 transform">
-            <div className="flex items-center gap-1.5">
-              <svg
-                className="w-4 h-4 text-[#e50914]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M7 16.5V5m0 0a1.5 1.5 0 0 1 3 0M7 5a1.5 1.5 0 0 0 3 0"
-                />
-              </svg>
-              <span className="text-gray-700 font-semibold text-xs">
-                Humidity
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-10 h-1.5 bg-gray-300 rounded-full overflow-hidden border border-[#e50914]/20">
-                <div
-                  className="h-full bg-gradient-to-r from-[#e50914] to-[#b00020] transition-all duration-500 group-hover:from-[#b00020] group-hover:to-[#8b0018]"
-                  style={{ width: `${weather.relative_humidity_2m}%` }}
-                />
+        <div className="p-4 space-y-2.5 bg-gradient-to-b from-gray-50/60 to-white/40">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-2.5">
+            {/* Feels Like */}
+            <div className="group/stat relative overflow-hidden rounded-xl bg-white/60 backdrop-blur-sm p-3 border border-gray-200/50 hover:border-[#e50914]/40 transition-all duration-300 hover:shadow-lg cursor-pointer">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-[#e50914]/5 to-transparent rounded-bl-full" />
+              <div className="relative">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <svg className="w-3.5 h-3.5 text-[#e50914]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Feels Like</span>
+                </div>
+                <p className="text-xl font-black text-gray-900 group-hover/stat:text-[#e50914] transition-colors">
+                  {Math.round(weather.apparent_temperature)}°
+                </p>
               </div>
-              <span className="text-gray-900 font-bold text-xs w-6 text-right px-1 py-0.5 rounded bg-white/80">
-                {weather.relative_humidity_2m}%
-              </span>
+            </div>
+
+            {/* Humidity */}
+            <div className="group/stat relative overflow-hidden rounded-xl bg-white/60 backdrop-blur-sm p-3 border border-gray-200/50 hover:border-[#e50914]/40 transition-all duration-300 hover:shadow-lg cursor-pointer">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-500/5 to-transparent rounded-bl-full" />
+              <div className="relative">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <svg className="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                  </svg>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Humidity</span>
+                </div>
+                <p className="text-xl font-black text-gray-900 group-hover/stat:text-blue-600 transition-colors">
+                  {weather.relative_humidity_2m}%
+                </p>
+              </div>
+            </div>
+
+            {/* Wind Speed */}
+            <div className="group/stat relative overflow-hidden rounded-xl bg-white/60 backdrop-blur-sm p-3 border border-gray-200/50 hover:border-[#e50914]/40 transition-all duration-300 hover:shadow-lg cursor-pointer">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-teal-500/5 to-transparent rounded-bl-full" />
+              <div className="relative">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <svg className="w-3.5 h-3.5 text-teal-600 group-hover/stat:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Wind</span>
+                </div>
+                <p className="text-xl font-black text-gray-900 group-hover/stat:text-teal-600 transition-colors">
+                  {Math.round(weather.wind_speed_10m)}
+                  <span className="text-xs font-semibold ml-0.5">km/h</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Status */}
+            <div className="group/stat relative overflow-hidden rounded-xl bg-white/60 backdrop-blur-sm p-3 border border-gray-200/50 hover:border-[#e50914]/40 transition-all duration-300 hover:shadow-lg cursor-pointer">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-purple-500/5 to-transparent rounded-bl-full" />
+              <div className="relative">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span className="text-xl group-hover/stat:scale-110 transition-transform duration-300">{getWeatherIcon(weather.weather_code)}</span>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Condition</span>
+                </div>
+                <p className="text-sm font-bold text-gray-900 group-hover/stat:text-purple-600 transition-colors leading-tight">
+                  {getWeatherDescription(weather.weather_code)}
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Wind Speed */}
-          <div className="flex items-center justify-between p-2.5 rounded-lg bg-white/40 hover:bg-white/60 transition-all duration-200 cursor-pointer group active:scale-95 transform">
-            <div className="flex items-center gap-1.5">
-              <svg
-                className="w-4 h-4 text-[#e50914] group-hover:rotate-45 transition-transform duration-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"
-                />
-              </svg>
-              <span className="text-gray-700 font-semibold text-xs">Wind</span>
-            </div>
-            <span className="text-gray-900 font-bold text-xs group-hover:text-[#b00020] transition-colors px-2 py-0.5 rounded bg-white/80 group-hover:bg-[#e50914]/10">
-              {Math.round(weather.wind_speed_10m)} km/h
+          {/* Footer bar with update time */}
+          <div className="flex items-center justify-center gap-2 pt-2 mt-1 border-t border-gray-200/60">
+            <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-[10px] font-semibold text-gray-500">
+              Updated {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
             </span>
-          </div>
-
-          {/* Last Updated */}
-          <div className="text-xs text-gray-500 text-center pt-1 pb-1 border-t border-white/30 mt-2">
-            Updated:{" "}
-            {new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
           </div>
         </div>
       </div>

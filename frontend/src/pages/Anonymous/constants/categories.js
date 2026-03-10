@@ -15,5 +15,6 @@ export const CATEGORIES = [
     "Male Hall Gymnasium",
     "Female Hall Gymnasium",
     "Central Gymnasium",
-    "Sports"
+    "Sports",
+    "Others"
 ];
