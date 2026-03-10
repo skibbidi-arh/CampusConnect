@@ -461,7 +461,7 @@ export default function Dashboard() {
           )}
         </button>
         {/* Chatbot Floating Panel */}
-        // In Dashboard.jsx — your floating panel:
+        
         {chatbotOpen && (
           <div
             className="fixed bottom-24 right-6 z-50 w-[380px] flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c0e] shadow-2xl shadow-black/50"
