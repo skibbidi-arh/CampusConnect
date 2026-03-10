@@ -163,6 +163,7 @@ exports.deleteComment = async (req, res) => {
 
 // POST /api/feedback/:id/like - Like a feedback
 exports.likeFeedback = async (req, res) => {
+    console.log("Like e asche")
     try {
         // Get userId from authenticated user or req.body (backwards compatibility)
         const userId = String(req.verifiedUser?.user_id || req.body.userId);
@@ -177,8 +178,8 @@ exports.likeFeedback = async (req, res) => {
             return res.status(404).json({ message: "Feedback not found" });
         }
 
-        // Check if user already liked this feedback
-        if (feedback.likes.includes(userId)) {
+        // Check if user already liked this feedback (normalize to string for type-safe comparison)
+        if (feedback.likes.map(String).includes(userId)) {
             return res.status(400).json({ message: "Already liked" });
         }
 
@@ -209,27 +210,33 @@ exports.likeFeedback = async (req, res) => {
 
 // POST /api/feedback/:id/unlike - Unlike a feedback
 exports.unlikeFeedback = async (req, res) => {
+    console.log("Unlike feedback")
     try {
         // Get userId from authenticated user or req.body (backwards compatibility)
         const userId = String(req.verifiedUser?.user_id || req.body.userId);
+        console.log("Unlike feedback", userId)
 
         if (!userId || userId === 'undefined') {
+            console.log("User ID required")
             return res.status(400).json({ message: "User ID required" });
         }
 
         const feedback = await Feedback.findById(req.params.id);
 
         if (!feedback) {
+            console.log("Feedback not found")
             return res.status(404).json({ message: "Feedback not found" });
         }
 
-        // Remove userId from likes array
-        feedback.likes = feedback.likes.filter(id => id !== userId);
+        // Remove userId from likes array (normalize to string for type-safe comparison)
+        feedback.likes = feedback.likes.map(String).filter(id => id !== userId);
         await feedback.save();
 
         res.json(feedback);
     } catch (error) {
+        console.log('Error in unlike feedback')
         if (error.kind === "ObjectId") {
+            console.log("Feedback not found")
             return res.status(404).json({ message: "Feedback not found" });
         }
         console.error('[Feedback] Unlike error:', error);

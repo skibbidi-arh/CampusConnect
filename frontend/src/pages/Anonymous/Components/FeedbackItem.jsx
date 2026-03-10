@@ -3,6 +3,7 @@ import { MessageCircle, Send, MoreVertical, Heart } from "lucide-react";
 import { useState } from "react";
 import { addComment, deleteComment, likeFeedback, unlikeFeedback, likeComment, unlikeComment } from "../api/feedbackApi";
 import toast from "react-hot-toast";
+import { AuthContext } from "../../../context/AuthContext";
 import { getAnonymousUserId } from "../utils/userUtils";
 
 export default function FeedbackItem({ feedback, onUpdate }) {
@@ -11,7 +12,12 @@ export default function FeedbackItem({ feedback, onUpdate }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [localFeedback, setLocalFeedback] = useState(feedback);
     const [deleteConfirmId, setDeleteConfirmId] = useState(null);
-    const userId = getAnonymousUserId();
+    
+    // Use the real logged-in user ID if available, otherwise fall back to anonymous
+    const { User } = AuthContext();
+    const userId = User 
+        ? String(User.users_id || User.user_id || User.id) 
+        : getAnonymousUserId();
 
     const handleAddComment = async (e) => {
         e.preventDefault();
@@ -46,13 +52,17 @@ export default function FeedbackItem({ feedback, onUpdate }) {
 
     const handleLikeFeedback = async () => {
         try {
-            const isLiked = localFeedback.likes?.includes(userId);
+            console.log(localFeedback.likes)
+            const isLiked = localFeedback.likes?.map(String).includes(String(userId));
+            console.log(isLiked)
             
             if (isLiked) {
+                console.log(userId)
                 const response = await unlikeFeedback(localFeedback._id, userId);
                 setLocalFeedback(response.data);
                 if (onUpdate) onUpdate(response.data);
             } else {
+                console.log(userId,'is liked')
                 const response = await likeFeedback(localFeedback._id, userId);
                 setLocalFeedback(response.data);
                 if (onUpdate) onUpdate(response.data);

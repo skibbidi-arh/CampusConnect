@@ -19,12 +19,14 @@ export const getAnonymousUserId = () => {
     if (token) {
         const decoded = decodeJwt(token);
         // The backend JWT uses `user_id` or the user might be in session
+        console.log(decoded)
         if (decoded && decoded.user_id) return String(decoded.user_id);
     }
 
     // 2. Check if user object is in session storage
     try {
         const userStr = sessionStorage.getItem('user');
+        console.log(userStr)
         if (userStr) {
             const user = JSON.parse(userStr);
             if (user && user.user_id) return String(user.user_id);
