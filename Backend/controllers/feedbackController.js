@@ -21,6 +21,15 @@ exports.createFeedback = async (req, res) => {
             submitterId: req.verifiedUser?.user_id || null
         });
 
+        // Broadcast a notification to all users about the new feedback post
+        await createNotification(
+            'feedback',
+            'New Anonymous Feedback Posted 📢',
+            `A new feedback post was created in the "${category}" category.`,
+            'all', // Send to everyone
+            { feedbackId: feedback._id.toString(), isNewPostBroadcast: true }
+        );
+
         res.status(201).json(feedback);
     } catch (error) {
         console.error('[Feedback] Create error:', error);
@@ -156,9 +165,9 @@ exports.deleteComment = async (req, res) => {
 exports.likeFeedback = async (req, res) => {
     try {
         // Get userId from authenticated user or req.body (backwards compatibility)
-        const userId = req.verifiedUser?.user_id || req.body.userId;
+        const userId = String(req.verifiedUser?.user_id || req.body.userId);
 
-        if (!userId) {
+        if (!userId || userId === 'undefined') {
             return res.status(400).json({ message: "User ID required" });
         }
 
@@ -202,9 +211,9 @@ exports.likeFeedback = async (req, res) => {
 exports.unlikeFeedback = async (req, res) => {
     try {
         // Get userId from authenticated user or req.body (backwards compatibility)
-        const userId = req.verifiedUser?.user_id || req.body.userId;
+        const userId = String(req.verifiedUser?.user_id || req.body.userId);
 
-        if (!userId) {
+        if (!userId || userId === 'undefined') {
             return res.status(400).json({ message: "User ID required" });
         }
 
@@ -232,9 +241,9 @@ exports.unlikeFeedback = async (req, res) => {
 exports.likeComment = async (req, res) => {
     try {
         const { feedbackId, commentId } = req.params;
-        const { userId } = req.body;
+        const userId = String(req.verifiedUser?.user_id || req.body.userId);
 
-        if (!userId) {
+        if (!userId || userId === 'undefined') {
             return res.status(400).json({ message: "User ID required" });
         }
 
@@ -271,9 +280,9 @@ exports.likeComment = async (req, res) => {
 exports.unlikeComment = async (req, res) => {
     try {
         const { feedbackId, commentId } = req.params;
-        const { userId } = req.body;
+        const userId = String(req.verifiedUser?.user_id || req.body.userId);
 
-        if (!userId) {
+        if (!userId || userId === 'undefined') {
             return res.status(400).json({ message: "User ID required" });
         }
 

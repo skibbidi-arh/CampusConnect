@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
-const POLL_INTERVAL = 15000;
+const POLL_INTERVAL = 2000;
 
 const TYPE_META = {
     marketplace: { label: "Marketplace", color: "bg-red-500" },
@@ -40,6 +41,7 @@ function NotificationSkeleton() {
 export default function LiveFeed() {
 
     const { User } = AuthContext();
+    const navigate = useNavigate();
 
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -58,18 +60,48 @@ export default function LiveFeed() {
             const res = await fetch("http://localhost:4000/api/notifications", {
                 headers: { Authorization: `Bearer ${token}` },
             });
-
+            console.log(res)
             if (!res.ok) throw new Error("Fetch failed");
 
             const data = await res.json();
 
             if (data.success) {
 
-                const merged = data.notifications.map((n) =>
-                    readIdsRef.current.has(n._id) ? { ...n, isRead: true } : n
-                );
+                const merged = data.notifications
+                    .map((n) => (readIdsRef.current.has(n._id) ? { ...n, isRead: true } : n))
+                    .filter((n) => {
+                        if (n.type === 'feedback') {
+                            // Only show feedback notifications in the live feed if they are system broadcasts (new posts), not personal likes/comments
+                            if (n.metadata?.isNewPostBroadcast !== true) {
+                                return false; 
+                            }
+                        }
+
+                        // Filter out all personal marketplace pre-order notifications (approvals, verifications, confirmations)
+                        if (n.type === 'pre_order') {
+                            return false; 
+                        }
+                        
+                        // Filter out admin-related society notifications entirely based on the word 'admin'
+                        if (n.type === 'society') {
+                            const titleStr = n.title?.toLowerCase() || '';
+                            const msgStr = n.message?.toLowerCase() || '';
+                            if (titleStr.includes('admin') || msgStr.includes('admin')) {
+                                return false; // Hide from LiveFeed
+                            }
+                        }
+                        return true;
+                    })
+                    .sort((a, b) => {
+                        // Unread first, then read. If both are same, sort by date (newest first).
+                        if (a.isRead === b.isRead) {
+                            return new Date(b.createdAt) - new Date(a.createdAt);
+                        }
+                        return a.isRead ? 1 : -1;
+                    });
 
                 setNotifications(merged);
+                console.log(merged)
                 setUnreadCount(merged.filter((n) => !n.isRead).length);
                 setError(null);
 
@@ -105,13 +137,13 @@ export default function LiveFeed() {
                 method: "PATCH",
                 headers: { Authorization: `Bearer ${token}` },
             });
-            
+
             if (!response.ok) {
                 throw new Error('Failed to mark as read');
             }
-            
+
             const data = await response.json();
-            
+
             // Only update local state if backend succeeded
             if (data.success) {
                 readIdsRef.current.add(id);
@@ -126,38 +158,69 @@ export default function LiveFeed() {
 
     };
 
+    const handleNotificationClick = (n) => {
+        if (!n.isRead) {
+            handleMarkAsRead(n._id);
+        }
+
+        let link = '/dashboard';
+        switch (n.type) {
+            case 'marketplace':
+            case 'pre_order':
+                link = n.metadata?.postId ? `/marketplace/${n.metadata.postId}` : '/marketplace';
+                break;
+            case 'lost_found':
+                link = '/lost-found';
+                break;
+            case 'roommate':
+                link = '/accommodation';
+                break;
+            case 'event':
+            case 'society':
+                link = n.metadata?.societyId ? `/societies/${n.metadata.societyId}` : '/societies';
+                break;
+            case 'blood':
+                link = '/medical-support';
+                break;
+            case 'feedback':
+                link = '/home'; // Anonymous feedback page
+                break;
+        }
+        navigate(link);
+    };
+
     const handleMarkAllRead = async () => {
 
         const token = sessionStorage.getItem("authToken");
-        
+
         if (!token) {
             console.error('No auth token found');
             alert('Please login again to mark notifications as read.');
             return;
         }
-        
+
         console.log('Attempting to mark all as read...');
 
         try {
             // Send request to backend first
             const response = await fetch("http://localhost:4000/api/notifications/read-all", {
                 method: "PATCH",
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
+                    'Authorization': `Bearer ${token}`
                 },
             });
-            
+
             console.log('Response status:', response.status);
             console.log('Response ok:', response.ok);
-            
+
             const data = await response.json();
             console.log('Mark all as read response:', data);
-            
+
             if (!response.ok) {
                 throw new Error(data.message || `Server error: ${response.status}`);
             }
-            
+
             // Only update local state if backend succeeded
             if (data.success) {
                 notifications.forEach((n) => readIdsRef.current.add(n._id));
@@ -246,7 +309,7 @@ export default function LiveFeed() {
 
                             <div
                                 key={n._id}
-                                onClick={() => !n.isRead && handleMarkAsRead(n._id)}
+                                onClick={() => handleNotificationClick(n)}
                                 className={`px-4 py-3 border-b border-gray-100 cursor-pointer transition-all duration-200 hover:bg-gray-50 hover:scale-[1.01] ${!n.isRead ? "border-l-4 border-red-500 bg-red-50/30" : "opacity-70"
                                     }`}
                             >
@@ -284,7 +347,7 @@ export default function LiveFeed() {
                                             </span>
 
                                             <span
-                                                className={`text-[9px] font-medium px-2 py-0.5 rounded-full text-white ${meta.color} whitespace-nowrap`}
+                                                className={`text-[9px] bg-black font-medium px-2 py-0.5 rounded-full text-white ${meta.color} whitespace-nowrap`}
                                             >
                                                 {meta.label}
                                             </span>
@@ -309,7 +372,7 @@ export default function LiveFeed() {
 
             <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400 flex-wrap gap-2">
 
-                <span className="whitespace-nowrap">Refreshes every 15s</span>
+                <span className="whitespace-nowrap">Refreshes every 2s</span>
 
                 <button
                     onClick={fetchNotifications}

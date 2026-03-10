@@ -8,7 +8,7 @@ const Feedback = require("../models/Feedback.js");
 const { createNotification } = require('../utils/notificationHelper');
 
 // Hardcoded administrator emails
-const ADMINISTRATOR_EMAILS = ["ridwankhan@iut-dhaka.edu"];
+const ADMINISTRATOR_EMAILS = ["musabbereen@iut-dhaka.edu"];
 
 /**
  * Administrator Google Sign-in

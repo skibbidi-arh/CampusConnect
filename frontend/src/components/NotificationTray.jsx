@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 const POLL_INTERVAL = 15000;
@@ -118,6 +119,7 @@ const FILTER_TABS = [
     { key: "event", label: "Events" },
     { key: "society", label: "Society" },
     { key: "blood", label: "Blood" },
+    { key: "feedback", label: "Feedback" },
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -146,12 +148,15 @@ function Skeleton() {
 }
 
 // ── Single notification row ────────────────────────────────────────────────────
-function NotificationItem({ n, onMarkRead }) {
+function NotificationItem({ n, onMarkRead, onClickItem }) {
     const meta = TYPE_META[n.type] || TYPE_META.feedback;
 
     return (
         <div
-            onClick={() => !n.isRead && onMarkRead(n._id)}
+            onClick={() => {
+                if (!n.isRead) onMarkRead(n._id);
+                if (onClickItem) onClickItem(n);
+            }}
             className={`group relative px-4 py-3.5 border-b border-gray-100 cursor-pointer
         transition-all duration-200 hover:bg-gray-50
         ${!n.isRead
@@ -220,6 +225,7 @@ function EmptyState({ filter }) {
 export default function NotificationTray({ isOpen, onClose, onUnreadCountChange, sharedReadIdsRef }) {
     const { User } = AuthContext();
     const trayRef = useRef(null);
+    const navigate = useNavigate();
 
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -243,9 +249,15 @@ export default function NotificationTray({ isOpen, onClose, onUnreadCountChange,
             if (!res.ok) throw new Error("failed");
             const data = await res.json();
             if (data.success) {
-                const merged = data.notifications.map((n) =>
-                    readIdsRef.current.has(n._id) ? { ...n, isRead: true } : n
-                );
+                const merged = data.notifications
+                    .map((n) => (readIdsRef.current.has(n._id) ? { ...n, isRead: true } : n))
+                    .sort((a, b) => {
+                        // Unread first, then read. If both are same, sort by date (newest first).
+                        if (a.isRead === b.isRead) {
+                            return new Date(b.createdAt) - new Date(a.createdAt);
+                        }
+                        return a.isRead ? 1 : -1;
+                    });
                 setNotifications(merged);
                 const newUnreadCount = merged.filter((n) => !n.isRead).length;
                 setUnreadCount(newUnreadCount);
@@ -284,20 +296,20 @@ export default function NotificationTray({ isOpen, onClose, onUnreadCountChange,
     // ── Actions ────────────────────────────────────────────────────────────────
     const handleMarkRead = async (id) => {
         const token = sessionStorage.getItem("authToken");
-        
+
         try {
             // Send request to backend first
             const response = await fetch(`${API_BASE}/api/notifications/${id}/read`, {
                 method: "PATCH",
                 headers: { Authorization: `Bearer ${token}` },
             });
-            
+
             if (!response.ok) {
                 throw new Error('Failed to mark as read');
             }
-            
+
             const data = await response.json();
-            
+
             // Only update local state if backend succeeded
             if (data.success) {
                 readIdsRef.current.add(id);
@@ -319,37 +331,37 @@ export default function NotificationTray({ isOpen, onClose, onUnreadCountChange,
     const handleMarkAllRead = async () => {
         setMarkingAll(true);
         const token = sessionStorage.getItem("authToken");
-        
+
         if (!token) {
             console.error('No auth token found');
             alert('Please login again to mark notifications as read.');
             setMarkingAll(false);
             return;
         }
-        
+
         console.log('Attempting to mark all as read...');
         console.log('Request URL:', `${API_BASE}/api/notifications/read-all`);
-        
+
         try {
             // First, send request to backend
             const response = await fetch(`${API_BASE}/api/notifications/read-all`, {
                 method: "PATCH",
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
+                    'Authorization': `Bearer ${token}`
                 },
             });
-            
+
             console.log('Response status:', response.status);
             console.log('Response ok:', response.ok);
-            
+
             const data = await response.json();
             console.log('Response data:', data);
-            
+
             if (!response.ok) {
                 throw new Error(data.message || `Server error: ${response.status}`);
             }
-            
+
             // Only update local state if backend succeeded
             if (data.success) {
                 notifications.forEach((n) => readIdsRef.current.add(n._id));
@@ -371,6 +383,34 @@ export default function NotificationTray({ isOpen, onClose, onUnreadCountChange,
         } finally {
             setMarkingAll(false);
         }
+    };
+
+    const handleNotificationClick = (n) => {
+        let link = '/dashboard';
+        switch (n.type) {
+            case 'marketplace':
+            case 'pre_order':
+                link = n.metadata?.postId ? `/marketplace/${n.metadata.postId}` : '/marketplace';
+                break;
+            case 'lost_found':
+                link = '/lost-found';
+                break;
+            case 'roommate':
+                link = '/accommodation';
+                break;
+            case 'event':
+            case 'society':
+                link = n.metadata?.societyId ? `/societies/${n.metadata.societyId}` : '/societies';
+                break;
+            case 'blood':
+                link = '/medical-support';
+                break;
+            case 'feedback':
+                link = '/home'; // Anonymous feedback page
+                break;
+        }
+        navigate(link);
+        if (onClose) onClose();
     };
 
     // ── Filtered list ──────────────────────────────────────────────────────────
@@ -499,7 +539,7 @@ export default function NotificationTray({ isOpen, onClose, onUnreadCountChange,
                     <EmptyState filter={filter} />
                 ) : (
                     filtered.map((n) => (
-                        <NotificationItem key={n._id} n={n} onMarkRead={handleMarkRead} />
+                        <NotificationItem key={n._id} n={n} onMarkRead={handleMarkRead} onClickItem={handleNotificationClick} />
                     ))
                 )}
             </div>

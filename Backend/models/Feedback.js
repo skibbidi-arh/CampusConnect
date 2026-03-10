@@ -17,7 +17,8 @@ const CATEGORIES = [
     "Male Hall Gymnasium",
     "Female Hall Gymnasium",
     "Central Gymnasium",
-    "Sports"
+    "Sports",
+    "Others"
 ];
 
 const commentSchema = new mongoose.Schema(

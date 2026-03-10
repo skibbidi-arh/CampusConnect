@@ -8,21 +8,11 @@ exports.getMyNotifications = async (req, res) => {
     try {
         const userId = String(req.verifiedUser.user_id);
 
-        // 1. Fetch relevant notifications (personal + broadcast), excluding ones created by this user
+        // 1. Fetch relevant notifications (personal + broadcast)
         const notifications = await Notification.find({
-            $and: [
-                {
-                    $or: [
-                        { recipientId: userId },
-                        { recipientId: 'all' }
-                    ]
-                },
-                {
-                    $or: [
-                        { excludeUserId: null },
-                        { excludeUserId: { $ne: userId } }
-                    ]
-                }
+            $or: [
+                { recipientId: userId },
+                { recipientId: 'all' }
             ]
         })
             .sort({ createdAt: -1 })
@@ -65,8 +55,6 @@ exports.markAsRead = async (req, res) => {
         const userId = String(req.verifiedUser.user_id);
         const { id } = req.params;
 
-        console.log(`[markAsRead] User ${userId} marking notification ${id} as read`);
-
         // Verify the notification actually exists and targets this user
         const notification = await Notification.findOne({
             _id: id,
@@ -74,18 +62,15 @@ exports.markAsRead = async (req, res) => {
         });
 
         if (!notification) {
-            console.log(`[markAsRead] Notification ${id} not found for user ${userId}`);
             return res.status(404).json({ success: false, message: 'Notification not found' });
         }
 
         // Upsert a read receipt — safe to call multiple times, won't duplicate
-        const result = await NotificationRead.updateOne(
+        await NotificationRead.updateOne(
             { userId, notificationId: id },
             { $set: { userId, notificationId: id } },
             { upsert: true }
         );
-        
-        console.log(`[markAsRead] Mark as read result:`, result);
 
         res.status(200).json({ success: true });
     } catch (error) {
@@ -99,18 +84,13 @@ exports.markAsRead = async (req, res) => {
 exports.markAllRead = async (req, res) => {
     try {
         const userId = String(req.verifiedUser.user_id);
-        
-        console.log(`[markAllRead] User ${userId} marking all notifications as read`);
 
         // Fetch all notifications relevant to this user
         const notifications = await Notification.find({
             $or: [{ recipientId: userId }, { recipientId: 'all' }]
         }).select('_id').lean();
 
-        console.log(`[markAllRead] Found ${notifications.length} notifications for user ${userId}`);
-
         if (notifications.length === 0) {
-            console.log(`[markAllRead] No notifications to mark for user ${userId}`);
             return res.status(200).json({ success: true, message: 'Nothing to mark' });
         }
 
@@ -123,29 +103,11 @@ exports.markAllRead = async (req, res) => {
             }
         }));
 
-        console.log(`[markAllRead] Preparing to bulk write ${ops.length} read receipts`);
+        await NotificationRead.bulkWrite(ops, { ordered: false });
 
-        const result = await NotificationRead.bulkWrite(ops, { ordered: false });
-        
-        console.log(`[markAllRead] Bulk write completed:`, {
-            insertedCount: result.insertedCount,
-            modifiedCount: result.modifiedCount,
-            upsertedCount: result.upsertedCount,
-            matchedCount: result.matchedCount
-        });
-
-        res.status(200).json({ 
-            success: true, 
-            message: 'All notifications marked as read',
-            count: notifications.length 
-        });
+        res.status(200).json({ success: true, message: 'All notifications marked as read' });
     } catch (error) {
-        console.error('[markAllRead] Error marking all notifications as read:', error);
-        console.error('[markAllRead] Error stack:', error.stack);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Error updating notifications',
-            error: error.message 
-        });
+        console.error('Error marking all notifications as read:', error);
+        res.status(500).json({ success: false, message: 'Error updating notifications' });
     }
 };
