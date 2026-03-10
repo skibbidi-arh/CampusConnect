@@ -1,13 +1,21 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../src/config/prisma');
+const { createNotification } = require('../utils/notificationHelper');
 
 exports.createLostItem = async (req, res) => {
     try {
-        const { name, description, date, location, phone_number, image } = req.body;
+        const { name, description, date, location, phone_number, image, whatsappAvailable } = req.body;
 
         // Logging for debugging
         console.log("Request Body:", req.body);
         console.log("Verified User from Middleware:", req.verifiedUser);
+
+        // Validation
+        if (!name || !description || !date || !location || !phone_number) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields: name, description, date, location, and phone_number are required"
+            });
+        }
 
         // 1. Get the user_id from req.verifiedUser (set in your middleware)
         const owner_id = req.verifiedUser.user_id;
@@ -26,7 +34,8 @@ exports.createLostItem = async (req, res) => {
                 // (Note: Your middleware doesn't currently attach the full user object, 
                 // just the decoded token + user_id)
                 phone_number: phone_number || "",
-                image,
+                image: image || null, // Allow null images
+                whatsappAvailable: whatsappAvailable || false,
                 ownerId: owner_id
             }
         });
@@ -36,6 +45,16 @@ exports.createLostItem = async (req, res) => {
             message: "Lost item reported successfully",
             item: newItem
         });
+
+        // Broadcast notification to all users (except the creator)
+        await createNotification(
+            'lost_found',
+            'New Lost Item Posted',
+            `A new lost item "${name}" was posted. Location: ${location || 'N/A'}.`,
+            'all',
+            { itemId: newItem.item_id },
+            owner_id  // Exclude the creator from notification
+        );
 
     } catch (error) {
         console.error("CREATE LOST ITEM ERROR:", error);

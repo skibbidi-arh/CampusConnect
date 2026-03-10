@@ -10,6 +10,11 @@ const requestRoutes = require('./routes/request.routes.js')
 const lostItemsRoutes = require('./routes/LostItem.routes.js')
 const roomBookingRoutes = require('./routes/roomBooking.routes.js')
 const feedBackRoutes = require('./routes/feedbackRoutes.js')
+const societyRoutes = require('./routes/society.routes.js')
+const eventRoutes = require('./routes/event.routes.js')
+const administratorRoutes = require('./routes/administrator.routes.js')
+const marketplaceRoutes = require('./routes/marketplace.routes.js')
+const notificationRoutes = require('./routes/notification.routes.js')
 const httpproxy = require('http-proxy')
 
 
@@ -26,7 +31,7 @@ const GATEWAY_URL = 'http://localhost:4000';
 const corsOptions = {
     origin: [FRONTEND_DEV_URL, GATEWAY_URL],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
@@ -34,7 +39,8 @@ app.use(cors(corsOptions));
 
 app.use(cookieParser());
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 
 app.use('/api/auth', authRoutes);
@@ -43,6 +49,11 @@ app.use('/api/request', requestRoutes)
 app.use('/api/lost-items', lostItemsRoutes)
 app.use('/api/bookRoom', roomBookingRoutes)
 app.use('/anonymous/api/feedback', feedBackRoutes)
+app.use('/api', societyRoutes)
+app.use('/api', eventRoutes)
+app.use('/api/administrator', administratorRoutes)
+app.use('/api/marketplace', marketplaceRoutes)
+app.use('/api', notificationRoutes)
 
 
 

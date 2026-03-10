@@ -17,8 +17,38 @@ const CATEGORIES = [
     "Male Hall Gymnasium",
     "Female Hall Gymnasium",
     "Central Gymnasium",
-    "Sports"
+    "Sports",
+    "Others"
 ];
+
+const commentSchema = new mongoose.Schema(
+    {
+        author: {
+            type: String,
+            default: "Anonymous",
+            trim: true,
+            maxlength: 50
+        },
+        message: {
+            type: String,
+            required: true,
+            trim: true,
+            minlength: 1,
+            maxlength: 500
+        },
+        likes: {
+            type: [String],
+            default: []
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    },
+    {
+        _id: true
+    }
+);
 
 const feedbackSchema = new mongoose.Schema(
     {
@@ -37,6 +67,19 @@ const feedbackSchema = new mongoose.Schema(
             required: true,
             trim: true,
             minlength: 5
+        },
+        likes: {
+            type: [String],
+            default: []
+        },
+        comments: {
+            type: [commentSchema],
+            default: []
+        },
+        // Optional: set when the submitter is a logged-in user (link to Postgres users_id)
+        submitterId: {
+            type: String,
+            default: null
         }
     },
     {
