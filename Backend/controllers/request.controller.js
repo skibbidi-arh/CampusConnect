@@ -1,9 +1,8 @@
 // requestController.js
-const { PrismaClient } = require("@prisma/client");
 const {
   transformBloodRequestToNotification,
 } = require("../src/services/bloodNotificationTransformer");
-const prisma = new PrismaClient();
+const prisma = require('../src/config/prisma');
 const { createNotification } = require('../utils/notificationHelper');
 
 exports.createBloodRequest = async (req, res) => {
@@ -82,7 +81,8 @@ exports.createBloodRequest = async (req, res) => {
         `🩸 Urgent Blood Request — ${blood_group}`,
         `${requesterName} urgently needs ${blood_group} blood at ${location}. Deadline: ${new Date(deadline).toLocaleDateString()}.`,
         'all',
-        { requestId: newRequest.request_id, blood_group, location }
+        { requestId: newRequest.request_id, blood_group, location },
+        requesterId  // Exclude the requester from receiving their own blood request notification
       );
     });
   } catch (error) {

@@ -31,7 +31,7 @@ const GATEWAY_URL = 'http://localhost:4000';
 const corsOptions = {
     origin: [FRONTEND_DEV_URL, GATEWAY_URL],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 };
 

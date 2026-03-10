@@ -270,7 +270,8 @@ const submitPreOrder = async (req, res) => {
             'New Pre-Order Received',
             `${userName} submitted a pre-order for "${post.title}" (Txn: ${transactionId.trim()})`,
             post.sellerId,
-            { postId: post._id.toString(), transactionId: transactionId.trim() }
+            { postId: post._id.toString(), transactionId: transactionId.trim() },
+            userId  // Exclude the buyer from notification (though they're not the recipient anyway)
         );
 
         res.status(200).json({ success: true, post: updatedPost, message: 'Pre-order submitted successfully' });
@@ -312,7 +313,8 @@ const verifyPreOrder = async (req, res) => {
             'Pre-Order Verified ✓',
             `Your payment for "${post.title}" has been confirmed. The product is being prepared.`,
             preOrder.userId,
-            { postId: post._id.toString(), preOrderId }
+            { postId: post._id.toString(), preOrderId },
+            sellerId  // Exclude the seller from notification
         );
 
         res.status(200).json({ success: true, post: updatedPost, message: 'Pre-order verified successfully' });
@@ -409,7 +411,8 @@ const markProductReady = async (req, res) => {
                 'Product Ready for Collection 🎉',
                 `"${post.title}" is ready! Collect it at: ${collectionLocation}`,
                 verifiedBuyerIds,
-                { postId: post._id.toString(), collectionLocation }
+                { postId: post._id.toString(), collectionLocation },
+                sellerId  // Exclude the seller from notification
             );
         }
 

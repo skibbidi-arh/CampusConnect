@@ -83,6 +83,8 @@ export default function Header({ onMenuToggle, showMenuButton = true, handlelogo
             <NotificationTray
               isOpen={notifOpen}
               onClose={handleTrayClose}
+              onUnreadCountChange={setUnreadCount}
+              sharedReadIdsRef={readIdsRef}
             />
           </div>
 

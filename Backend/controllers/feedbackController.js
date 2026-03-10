@@ -6,22 +6,24 @@ const { createNotification } = require('../utils/notificationHelper');
 exports.createFeedback = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-
         return res.status(400).json({ errors: errors.array() });
     }
 
     try {
         const { category, title, message } = req.body;
-        console.log(category, title, message)
+        console.log('[Feedback] Creating:', { category, title, message, userId: req.verifiedUser?.user_id });
 
         const feedback = await Feedback.create({
             category,
             title,
-            message
+            message,
+            // Store submitterId if user is authenticated (for notifications)
+            submitterId: req.verifiedUser?.user_id || null
         });
 
         res.status(201).json(feedback);
     } catch (error) {
+        console.error('[Feedback] Create error:', error);
         res.status(500).json({ message: "Server Error" });
     }
 };
@@ -93,13 +95,21 @@ exports.addComment = async (req, res) => {
 
         // Notify the feedback submitter if they are a known user (not anonymous)
         if (feedback.submitterId) {
+            console.log('[Feedback] Sending comment notification:', {
+                submitterId: feedback.submitterId,
+                commenterId: req.verifiedUser?.user_id,
+                willExclude: req.verifiedUser?.user_id === feedback.submitterId
+            });
             await createNotification(
                 'feedback',
                 'New Comment on Your Feedback',
                 `Someone commented on your feedback "${feedback.title || feedback.message.slice(0, 40)}...".`,
                 feedback.submitterId,
-                { feedbackId: feedback._id.toString() }
+                { feedbackId: feedback._id.toString() },
+                req.verifiedUser?.user_id  // Exclude the commenter from notification
             );
+        } else {
+            console.log('[Feedback] No notification sent - feedback is anonymous (no submitterId)');
         }
 
         res.status(201).json(feedback);
@@ -145,7 +155,8 @@ exports.deleteComment = async (req, res) => {
 // POST /api/feedback/:id/like - Like a feedback
 exports.likeFeedback = async (req, res) => {
     try {
-        const { userId } = req.body;
+        // Get userId from authenticated user or req.body (backwards compatibility)
+        const userId = req.verifiedUser?.user_id || req.body.userId;
 
         if (!userId) {
             return res.status(400).json({ message: "User ID required" });
@@ -165,14 +176,15 @@ exports.likeFeedback = async (req, res) => {
         feedback.likes.push(userId);
         await feedback.save();
 
-        // Notify the feedback submitter if they are a known user
+        // Notify the feedback submitter if they are a known user and not the liker
         if (feedback.submitterId && String(feedback.submitterId) !== String(userId)) {
             await createNotification(
                 'feedback',
                 'Your Feedback Was Liked 👍',
                 `Someone liked your feedback "${feedback.title || feedback.message.slice(0, 40)}...".`,
                 feedback.submitterId,
-                { feedbackId: feedback._id.toString() }
+                { feedbackId: feedback._id.toString() },
+                userId  // Exclude the person who liked it
             );
         }
 
@@ -181,6 +193,7 @@ exports.likeFeedback = async (req, res) => {
         if (error.kind === "ObjectId") {
             return res.status(404).json({ message: "Feedback not found" });
         }
+        console.error('[Feedback] Like error:', error);
         res.status(500).json({ message: "Server Error" });
     }
 };
@@ -188,7 +201,8 @@ exports.likeFeedback = async (req, res) => {
 // POST /api/feedback/:id/unlike - Unlike a feedback
 exports.unlikeFeedback = async (req, res) => {
     try {
-        const { userId } = req.body;
+        // Get userId from authenticated user or req.body (backwards compatibility)
+        const userId = req.verifiedUser?.user_id || req.body.userId;
 
         if (!userId) {
             return res.status(400).json({ message: "User ID required" });
@@ -209,6 +223,7 @@ exports.unlikeFeedback = async (req, res) => {
         if (error.kind === "ObjectId") {
             return res.status(404).json({ message: "Feedback not found" });
         }
+        console.error('[Feedback] Unlike error:', error);
         res.status(500).json({ message: "Server Error" });
     }
 };

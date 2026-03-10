@@ -217,7 +217,7 @@ function EmptyState({ filter }) {
 }
 
 // ── Main NotificationTray ──────────────────────────────────────────────────────
-export default function NotificationTray({ isOpen, onClose }) {
+export default function NotificationTray({ isOpen, onClose, onUnreadCountChange, sharedReadIdsRef }) {
     const { User } = AuthContext();
     const trayRef = useRef(null);
 
@@ -228,8 +228,8 @@ export default function NotificationTray({ isOpen, onClose }) {
     const [filter, setFilter] = useState("all");
     const [markingAll, setMarkingAll] = useState(false);
 
-    // Track locally-marked IDs so re-polls don't flash them back
-    const readIdsRef = useRef(new Set());
+    // Use shared readIdsRef from Header if provided, otherwise use local
+    const readIdsRef = sharedReadIdsRef || useRef(new Set());
 
     // ── Fetch ──────────────────────────────────────────────────────────────────
     const fetchNotifications = useCallback(async () => {
@@ -247,7 +247,12 @@ export default function NotificationTray({ isOpen, onClose }) {
                     readIdsRef.current.has(n._id) ? { ...n, isRead: true } : n
                 );
                 setNotifications(merged);
-                setUnreadCount(merged.filter((n) => !n.isRead).length);
+                const newUnreadCount = merged.filter((n) => !n.isRead).length;
+                setUnreadCount(newUnreadCount);
+                // Notify parent (Header) of unread count change
+                if (onUnreadCountChange) {
+                    onUnreadCountChange(newUnreadCount);
+                }
                 setError(null);
             }
         } catch {
@@ -278,33 +283,94 @@ export default function NotificationTray({ isOpen, onClose }) {
 
     // ── Actions ────────────────────────────────────────────────────────────────
     const handleMarkRead = async (id) => {
-        readIdsRef.current.add(id);
-        setNotifications((prev) =>
-            prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
-        );
-        setUnreadCount((c) => Math.max(0, c - 1));
         const token = sessionStorage.getItem("authToken");
+        
         try {
-            await fetch(`${API_BASE}/api/notifications/${id}/read`, {
+            // Send request to backend first
+            const response = await fetch(`${API_BASE}/api/notifications/${id}/read`, {
                 method: "PATCH",
                 headers: { Authorization: `Bearer ${token}` },
             });
-        } catch { /* silent */ }
+            
+            if (!response.ok) {
+                throw new Error('Failed to mark as read');
+            }
+            
+            const data = await response.json();
+            
+            // Only update local state if backend succeeded
+            if (data.success) {
+                readIdsRef.current.add(id);
+                setNotifications((prev) =>
+                    prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
+                );
+                const newCount = Math.max(0, unreadCount - 1);
+                setUnreadCount(newCount);
+                // Notify parent (Header) of unread count change
+                if (onUnreadCountChange) {
+                    onUnreadCountChange(newCount);
+                }
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
     };
 
     const handleMarkAllRead = async () => {
         setMarkingAll(true);
         const token = sessionStorage.getItem("authToken");
-        notifications.forEach((n) => readIdsRef.current.add(n._id));
-        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-        setUnreadCount(0);
+        
+        if (!token) {
+            console.error('No auth token found');
+            alert('Please login again to mark notifications as read.');
+            setMarkingAll(false);
+            return;
+        }
+        
+        console.log('Attempting to mark all as read...');
+        console.log('Request URL:', `${API_BASE}/api/notifications/read-all`);
+        
         try {
-            await fetch(`${API_BASE}/api/notifications/read-all`, {
+            // First, send request to backend
+            const response = await fetch(`${API_BASE}/api/notifications/read-all`, {
                 method: "PATCH",
-                headers: { Authorization: `Bearer ${token}` },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
             });
-        } catch { /* silent */ }
-        setMarkingAll(false);
+            
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+            
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            if (!response.ok) {
+                throw new Error(data.message || `Server error: ${response.status}`);
+            }
+            
+            // Only update local state if backend succeeded
+            if (data.success) {
+                notifications.forEach((n) => readIdsRef.current.add(n._id));
+                setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+                setUnreadCount(0);
+                // Notify parent (Header) of unread count change
+                if (onUnreadCountChange) {
+                    onUnreadCountChange(0);
+                }
+                console.log('Successfully marked all as read');
+            } else {
+                throw new Error(data.message || 'Failed to mark notifications as read');
+            }
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+            console.error('Error details:', error.message);
+            // Show error to user
+            alert(`Failed to mark all as read: ${error.message}`);
+        } finally {
+            setMarkingAll(false);
+        }
     };
 
     // ── Filtered list ──────────────────────────────────────────────────────────
@@ -469,15 +535,13 @@ export function NotificationBell({ unreadCount, onClick }) {
             </svg>
 
             {/* Badge */}
-            {unreadCount > 0 ? (
+            {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center
           min-w-[18px] h-[18px] rounded-full bg-yellow-400 text-gray-900
           text-[10px] font-extrabold shadow px-0.5 ring-2 ring-[#b00020]
           animate-[badge-pop_300ms_cubic-bezier(0.22,1,0.36,1)]">
                     {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
-            ) : (
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-yellow-400 ring-1 ring-[#b00020]" />
             )}
             <style>{`
         @keyframes badge-pop {

@@ -148,6 +148,18 @@ exports.createEvent = async (req, res) => {
     // Notify all society followers about the new event
     if (society.followers && society.followers.length > 0) {
       try {
+        // Get creator's userId for exclusion
+        let creatorUserId = null;
+        try {
+          const creator = await prisma.users.findUnique({
+            where: { email: userEmail },
+            select: { users_id: true }
+          });
+          creatorUserId = creator?.users_id;
+        } catch (err) {
+          console.error('[Notification] Creator lookup failed:', err.message);
+        }
+
         const followerUsers = await prisma.users.findMany({
           where: { email: { in: society.followers } },
           select: { users_id: true }
@@ -159,7 +171,8 @@ exports.createEvent = async (req, res) => {
             `New Event: ${title}`,
             `${society.name} posted a new event on ${new Date(date).toLocaleDateString()}. Venue: ${venue}`,
             followerIds,
-            { eventId: event._id.toString(), societyId: societyId }
+            { eventId: event._id.toString(), societyId: societyId },
+            creatorUserId  // Exclude the event creator from notifications
           );
         }
       } catch (lookupErr) {
@@ -227,7 +240,8 @@ exports.updateEvent = async (req, res) => {
             'Event Details Updated',
             `"${event.title}" has been updated. Please check the latest date, time, and venue.`,
             regIds,
-            { eventId: id }
+            { eventId: id },
+            req.verifiedUser?.user_id  // Exclude the person who made the update
           );
         }
       } catch (lookupErr) {
@@ -278,7 +292,8 @@ exports.deleteEvent = async (req, res) => {
             'Event Cancelled',
             `The event "${event.title}" has been cancelled.`,
             regIds,
-            { eventId: id }
+            { eventId: id },
+            req.verifiedUser?.user_id  // Exclude the person who deleted the event
           );
         }
       } catch (lookupErr) {

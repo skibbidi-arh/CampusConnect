@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../src/config/prisma');
 const { createNotification } = require('../utils/notificationHelper');
 
 exports.createListing = async (req, res) => {
@@ -30,7 +29,8 @@ exports.createListing = async (req, res) => {
             'New Roommate Wanted Ad',
             `A new roommate ad was posted for area: ${area}. Rent: ${rent} BDT/month.`,
             'all',
-            { listingId: newListing.id }
+            { listingId: newListing.id },
+            userId  // Exclude the poster from receiving notification about their own ad
         );
     } catch (error) {
         console.error("CREATE ERROR:", error.message);

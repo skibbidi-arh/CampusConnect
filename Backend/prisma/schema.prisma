@@ -57,19 +57,20 @@ model RoommateListing {
 
 
 model LostItem {
-  item_id      Int      @id @default(autoincrement())
-  name         String
-  description  String   @db.Text
-  date         DateTime
-  location     String
-  phone_number String?  
-  image        String?  @db.Text
+  item_id           Int      @id @default(autoincrement())
+  name              String
+  description       String   @db.Text
+  date              DateTime
+  location          String
+  phone_number      String?  
+  image             String?  @db.Text
+  whatsappAvailable Boolean  @default(false)
   
-  owner        Users    @relation(fields: [ownerId], references: [users_id])
-  ownerId      Int
+  owner             Users    @relation(fields: [ownerId], references: [users_id])
+  ownerId           Int
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@map("lost_items")
 }

@@ -42,6 +42,11 @@ const notificationSchema = new mongoose.Schema(
         metadata: {
             type: mongoose.Schema.Types.Mixed,
             default: {}
+        },
+        // Optional: User ID to exclude from receiving this notification (e.g., the creator)
+        excludeUserId: {
+            type: String,
+            default: null
         }
     },
     {

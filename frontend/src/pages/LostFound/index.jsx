@@ -41,17 +41,31 @@ export default function LostFound() {
 
   const handleNewItem = async (formData) => {
     const token = sessionStorage.getItem('authToken')
+    
+    if (!token) {
+      toast.error('Please login to post items')
+      throw new Error('No auth token')
+    }
+
+    console.log('Sending data to backend:', formData)
+
     try {
       const response = await axios.post(
         'http://localhost:4000/api/lost-items/create',
         formData,
         { headers: { 'Authorization': `Bearer ${token}` } }
       )
+      
+      console.log('Backend response:', response.data)
+      
       if (response.data.success) {
         fetchItems()
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error creating post')
+      console.error('Error posting item:', error.response?.data || error.message)
+      const errorMsg = error.response?.data?.message || 'Error creating post. Please try again.'
+      toast.error(errorMsg)
+      throw error // Re-throw so the form knows it failed
     }
   }
 

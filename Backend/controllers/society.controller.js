@@ -302,13 +302,21 @@ exports.joinAsAdmin = async (req, res) => {
           select: { users_id: true }
         });
         const adminIds = adminUsers.map(u => u.users_id);
+        
+        // Get requester's userId to exclude them if they're already an admin
+        let requesterUserId = null;
+        if (req.verifiedUser?.user_id) {
+          requesterUserId = req.verifiedUser.user_id;
+        }
+        
         if (adminIds.length > 0) {
           await createNotificationForMany(
             'society',
             'New Admin Request',
-            `${userName || userEmail} has requested to become an admin of "${society.name}". Please review.`,
+            `${userName || userEmail} has requested to become  an admin of "${society.name}". Please review.`,
             adminIds,
-            { societyId: id, requesterEmail: userEmail }
+            { societyId: id, requesterEmail: userEmail },
+            requesterUserId  // Exclude the requester from notifications
           );
         }
       } catch (lookupErr) {

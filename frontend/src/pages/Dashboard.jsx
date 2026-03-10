@@ -292,16 +292,24 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Main Dashboard Grid - Features */}
-          <div className="lg:col-span-1 ">
-            <div className="sticky top-20 space-y-3">
-              <LiveFeed />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10">
-            {/* Features Grid - Left 3 columns */}
-            <div className="lg:col-span-3">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Main Dashboard Grid - Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden">
+            {/* Features Grid - Takes 3 columns on large screens */}
+            <div className="lg:col-span-3 min-w-0">
+              {/* Section Header */}
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white drop-shadow-lg">
+                    Campus Services
+                  </h2>
+                  <p className="text-sm text-white/80 mt-1">
+                    Explore all available services and features
+                  </p>
+                </div>
+              </div>
+
+              {/* Services Grid */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {features.map((feature, index) => (
                   <a
                     key={feature.id}
@@ -377,8 +385,21 @@ export default function Dashboard() {
                   </a>
                 ))}
               </div>
+            </div>
 
-              {/* Live Feed / Notifications Panel - Right Sidebar */}
+            {/* Live Feed Sidebar - Takes 1 column on large screens */}
+            <div className="lg:col-span-1 min-w-0 overflow-hidden">
+              <div className="sticky top-24 space-y-3 w-full">
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-white drop-shadow-lg">
+                    Live Activity
+                  </h2>
+                  <p className="text-xs text-white/80 mt-1">
+                    Recent campus updates
+                  </p>
+                </div>
+                <LiveFeed />
+              </div>
             </div>
           </div>
         </main>

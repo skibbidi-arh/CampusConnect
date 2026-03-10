@@ -97,59 +97,95 @@ export default function LiveFeed() {
     }, [fetchNotifications]);
 
     const handleMarkAsRead = async (id) => {
-
-        readIdsRef.current.add(id);
-
-        setNotifications((prev) =>
-            prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
-        );
-
-        setUnreadCount((c) => Math.max(0, c - 1));
-
         const token = sessionStorage.getItem("authToken");
 
         try {
-
-            await fetch(`http://localhost:4000/api/notifications/${id}/read`, {
+            // Send request to backend first
+            const response = await fetch(`http://localhost:4000/api/notifications/${id}/read`, {
                 method: "PATCH",
                 headers: { Authorization: `Bearer ${token}` },
             });
-
-        } catch { }
+            
+            if (!response.ok) {
+                throw new Error('Failed to mark as read');
+            }
+            
+            const data = await response.json();
+            
+            // Only update local state if backend succeeded
+            if (data.success) {
+                readIdsRef.current.add(id);
+                setNotifications((prev) =>
+                    prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
+                );
+                setUnreadCount((c) => Math.max(0, c - 1));
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
 
     };
 
     const handleMarkAllRead = async () => {
 
         const token = sessionStorage.getItem("authToken");
-
-        notifications.forEach((n) => readIdsRef.current.add(n._id));
-
-        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-        setUnreadCount(0);
+        
+        if (!token) {
+            console.error('No auth token found');
+            alert('Please login again to mark notifications as read.');
+            return;
+        }
+        
+        console.log('Attempting to mark all as read...');
 
         try {
-
-            await fetch("http://localhost:4000/api/notifications/read-all", {
+            // Send request to backend first
+            const response = await fetch("http://localhost:4000/api/notifications/read-all", {
                 method: "PATCH",
-                headers: { Authorization: `Bearer ${token}` },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
             });
-
-        } catch { }
+            
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+            
+            const data = await response.json();
+            console.log('Mark all as read response:', data);
+            
+            if (!response.ok) {
+                throw new Error(data.message || `Server error: ${response.status}`);
+            }
+            
+            // Only update local state if backend succeeded
+            if (data.success) {
+                notifications.forEach((n) => readIdsRef.current.add(n._id));
+                setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+                setUnreadCount(0);
+                console.log('Successfully marked all as read');
+            } else {
+                throw new Error(data.message || 'Failed to mark notifications as read');
+            }
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+            console.error('Error details:', error.message);
+            alert(`Failed to mark all as read: ${error.message}`);
+        }
 
     };
 
     return (
 
-        <div className="rounded-xl bg-white shadow-md border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
+        <div className="rounded-xl bg-white shadow-md border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 w-full">
 
             {/* Header */}
 
             <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
 
-                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2 flex-1 min-w-0">
 
-                    <span className="relative flex h-3 w-3">
+                    <span className="relative flex h-3 w-3 flex-shrink-0">
 
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
 
@@ -157,10 +193,10 @@ export default function LiveFeed() {
 
                     </span>
 
-                    Live Feed
+                    <span className="truncate">Live Feed</span>
 
                     {unreadCount > 0 && (
-                        <span className="ml-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold w-5 h-5">
+                        <span className="ml-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex-shrink-0">
                             {unreadCount > 99 ? "99+" : unreadCount}
                         </span>
                     )}
@@ -171,7 +207,7 @@ export default function LiveFeed() {
 
                     <button
                         onClick={handleMarkAllRead}
-                        className="text-xs font-semibold text-red-500 hover:text-red-600"
+                        className="text-xs font-semibold text-red-500 hover:text-red-600 flex-shrink-0 ml-2"
                     >
                         Mark all read
                     </button>
@@ -182,7 +218,7 @@ export default function LiveFeed() {
 
             {/* Notifications */}
 
-            <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+            <div className="max-h-96 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
 
                 {loading ? (
                     <>
@@ -226,40 +262,40 @@ export default function LiveFeed() {
                                     }`}
                             >
 
-                                <div className="flex gap-3">
+                                <div className="flex gap-3 items-start min-w-0 w-full">
 
                                     <div
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center text-white ${meta.color}`}
+                                        className={`w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center text-white ${meta.color}`}
                                     >
                                         •
                                     </div>
 
-                                    <div className="flex-1 min-w-0">
+                                    <div className="flex-1 min-w-0 overflow-hidden">
 
-                                        <div className="flex items-start justify-between">
+                                        <div className="flex items-start justify-between gap-2 mb-1">
 
-                                            <p className="text-xs font-semibold text-gray-900">
+                                            <p className="text-xs font-semibold text-gray-900 break-words">
                                                 {n.title}
                                             </p>
 
                                             {!n.isRead && (
-                                                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse mt-1" />
+                                                <span className="w-2.5 h-2.5 flex-shrink-0 rounded-full bg-red-500 animate-pulse mt-1" />
                                             )}
 
                                         </div>
 
-                                        <p className="text-xs text-gray-600 mt-1 leading-relaxed line-clamp-2">
+                                        <p className="text-xs text-gray-600 mt-1 leading-relaxed line-clamp-2 break-words">
                                             {n.message}
                                         </p>
 
-                                        <div className="flex items-center gap-2 mt-2">
+                                        <div className="flex items-center gap-2 mt-2 flex-wrap">
 
-                                            <span className="text-[10px] text-gray-400">
+                                            <span className="text-[10px] text-gray-400 whitespace-nowrap">
                                                 {timeAgo(n.createdAt)}
                                             </span>
 
                                             <span
-                                                className={`text-[9px] font-medium px-2 py-0.5 rounded-full text-white ${meta.color}`}
+                                                className={`text-[9px] font-medium px-2 py-0.5 rounded-full text-white ${meta.color} whitespace-nowrap`}
                                             >
                                                 {meta.label}
                                             </span>
@@ -282,13 +318,13 @@ export default function LiveFeed() {
 
             {/* Footer */}
 
-            <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
+            <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400 flex-wrap gap-2">
 
-                <span>Refreshes every 15s</span>
+                <span className="whitespace-nowrap">Refreshes every 15s</span>
 
                 <button
                     onClick={fetchNotifications}
-                    className="font-semibold text-red-500 hover:text-red-600"
+                    className="font-semibold text-red-500 hover:text-red-600 whitespace-nowrap"
                 >
                     Refresh now
                 </button>

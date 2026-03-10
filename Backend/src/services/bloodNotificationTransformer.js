@@ -5,11 +5,9 @@
  * - Sends Gmail notifications to matching donors
  */
 
-const { PrismaClient } = require("@prisma/client");
 const { transporter, GMAIL_USER } = require("../config/gmailConfig");
 const { isCompatibleDonor } = require("../utils/bloodTypeMatchings");
-
-const prisma = new PrismaClient();
+const prisma = require('../config/prisma');
 
 /**
  * Checks if a donor is eligible based on donation date
