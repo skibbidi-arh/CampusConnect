@@ -410,9 +410,6 @@ export default function Dashboard() {
                             />
                           </svg>
                         </div>
-                        <span className="inline-flex items-center rounded-full bg-gradient-to-r from-[#e50914]/10 to-[#b00020]/10 px-2 py-1 text-xs font-medium text-[#b00020] transition-all duration-300 group-hover:from-[#e50914]/20 group-hover:to-[#b00020]/20">
-                          Active
-                        </span>
                       </div>
                     </div>
                   </a>
