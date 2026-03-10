@@ -37,22 +37,23 @@ model Users {
 }
 
 model RoommateListing {
-  id              Int      @id @default(autoincrement())
-  area            String
-  fullAddress     String
-  floor           String
-  currentStudents Int
-  studentsInfo    Json     // Stores array of objects like [{studentId, batch}]
-  rent            Int
-  facilities      String?
-  phone_number    String
-  isGirlsOnly     Boolean  @default(false)
+  id                Int      @id @default(autoincrement())
+  area              String
+  fullAddress       String
+  floor             String
+  currentStudents   Int
+  studentsInfo      Json     // Stores array of objects like [{studentId, batch}]
+  rent              Int
+  facilities        String?
+  phone_number      String
+  isGirlsOnly       Boolean  @default(false)
+  whatsappAvailable Boolean  @default(false)
   
-  postedDate      DateTime @default(now())
+  postedDate        DateTime @default(now())
 
   // Relation to User
-  postedBy        Int
-  user            Users    @relation(fields: [postedBy], references: [users_id])
+  postedBy          Int
+  user              Users    @relation(fields: [postedBy], references: [users_id])
 }
 
 

@@ -21,6 +21,8 @@ export default function RoommateWanted() {
   const [listings, setListings] = useState([])
   const [isLoadingListings, setIsLoadingListings] = useState(true)
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null })
+  const [editingListing, setEditingListing] = useState(null)
+  const [activeTab, setActiveTab] = useState('all') // 'all' or 'my'
   console.log(User)
 
   const fetchAllListings = async () => {
@@ -55,6 +57,7 @@ export default function RoommateWanted() {
     }
   }, [User])
   const handlePostAdClick = () => {
+    setEditingListing(null)
     setShowForm(true)
   }
 
@@ -93,22 +96,45 @@ export default function RoommateWanted() {
     try {
       const token = sessionStorage.getItem('authToken');
 
-      const res = await axios.post(
-        'http://localhost:4000/api/bookRoom/create',
-        newListingData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
+      if (editingListing) {
+        // Update existing listing
+        const res = await axios.put(
+          `http://localhost:4000/api/bookRoom/update/${editingListing.id}`,
+          newListingData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
           }
-        }
-      );
+        );
 
-      if (res.data.success) {
-        fetchAllListings();
-        setShowForm(false);
+        if (res.data.success) {
+          toast.success('Ad updated successfully!');
+          fetchAllListings();
+          setShowForm(false);
+          setEditingListing(null);
+        }
+      } else {
+        // Create new listing
+        const res = await axios.post(
+          'http://localhost:4000/api/bookRoom/create',
+          newListingData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        if (res.data.success) {
+          toast.success('Ad posted successfully!');
+          fetchAllListings();
+          setShowForm(false);
+        }
       }
     } catch (error) {
       console.error(error);
+      toast.error(error.response?.data?.message || 'Could not save ad');
     }
   };
 
@@ -129,9 +155,22 @@ export default function RoommateWanted() {
     return true
   })
 
-  const sortedListings = [...filteredListings].sort((a, b) =>
+  // Filter by active tab
+  const tabFilteredListings = activeTab === 'my'
+    ? filteredListings.filter((listing) => listing.postedBy === User?.users_id)
+    : filteredListings
+
+  const sortedListings = [...tabFilteredListings].sort((a, b) =>
     new Date(b.postedDate) - new Date(a.postedDate)
   )
+
+  // Count my listings
+  const myListingsCount = listings.filter((listing) => listing.postedBy === User?.users_id).length
+  const handleEditListing = (listing) => {
+    setEditingListing(listing);
+    setShowForm(true);
+  };
+
   const handleCancelListing = (listingId) => {
     setConfirmModal({
       isOpen: true,
@@ -146,6 +185,7 @@ export default function RoommateWanted() {
           });
 
           if (res.data.success) {
+            toast.success('Ad removed successfully!');
             fetchAllListings();
           }
         } catch (error) {
@@ -176,7 +216,7 @@ export default function RoommateWanted() {
             <div className="flex items-center gap-4">
               <GoBackButton />
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">Roommate Wanted</h1>
+                <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">Non-Residential Support</h1>
                 <p className="mt-1 text-sm text-gray-600">Find your perfect roommate or post your available room</p>
               </div>
             </div>
@@ -192,13 +232,48 @@ export default function RoommateWanted() {
             </button>
           </div>
 
-          {/* Stats Bar */}
-          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="rounded-xl bg-white p-6 shadow-md">
-              <p className="text-sm text-gray-600">Total Listings</p>
-              <p className="text-2xl font-bold text-gray-900">{listings.length}</p>
-            </div>
-            {/* ... Other stats ... */}
+          {/* Tabs */}
+          <div className="mb-6 flex items-center gap-2 rounded-xl bg-white p-2 shadow-md">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`flex-1 rounded-lg px-6 py-3 text-sm font-semibold transition-all ${
+                activeTab === 'all'
+                  ? 'bg-gradient-to-r from-[#e50914] to-[#b00020] text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <span>All Listings</span>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                  activeTab === 'all' ? 'bg-white/20' : 'bg-gray-200 text-gray-700'
+                }`}>
+                  {listings.length}
+                </span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('my')}
+              className={`flex-1 rounded-lg px-6 py-3 text-sm font-semibold transition-all ${
+                activeTab === 'my'
+                  ? 'bg-gradient-to-r from-[#e50914] to-[#b00020] text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>My Listings</span>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                  activeTab === 'my' ? 'bg-white/20' : 'bg-gray-200 text-gray-700'
+                }`}>
+                  {myListingsCount}
+                </span>
+              </div>
+            </button>
           </div>
 
           {/* Main Content Grid */}
@@ -206,12 +281,28 @@ export default function RoommateWanted() {
             <div className="lg:col-span-2">
               {sortedListings.length === 0 ? (
                 <div className="rounded-2xl bg-white p-12 text-center shadow-lg">
-                  <h3 className="text-xl font-semibold text-gray-900">No listings yet</h3>
+                  <svg className="mx-auto mb-4 h-16 w-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {activeTab === 'my' ? 'No listings posted yet' : 'No listings available'}
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-500">
+                    {activeTab === 'my' 
+                      ? 'Click "Post Ad" to create your first roommate listing'
+                      : 'Be the first to post a roommate listing'}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-6">
                   {sortedListings.map((listing) => (
-                    <RoommateCard key={listing.id} listing={listing} onCancel={handleCancelListing} />
+                    <RoommateCard 
+                      key={listing.id} 
+                      listing={listing} 
+                      onCancel={handleCancelListing}
+                      onEdit={handleEditListing}
+                      showActions={activeTab === 'my'}
+                    />
                   ))}
                 </div>
               )}
@@ -258,7 +349,11 @@ export default function RoommateWanted() {
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
             <PostRoommateForm
               onSubmit={handleAddListing}
-              onCancel={() => setShowForm(false)}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingListing(null);
+              }}
+              initialData={editingListing}
             />
           </div>
         </div>

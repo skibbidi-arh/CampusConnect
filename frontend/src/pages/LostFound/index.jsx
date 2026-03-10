@@ -112,7 +112,7 @@ export default function LostFound() {
             <div className="flex items-center gap-4">
               <GoBackButton />
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">Digital Lost & Found</h1>
+                <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">Lost & Found</h1>
                 <p className="mt-1 text-sm text-gray-600">Report and recover lost items on campus</p>
               </div>
             </div>
